@@ -2,6 +2,7 @@ import cv2
 import time
 import numpy as np
 import ollama
+import timeit
 
 # Load the pre-trained MobileNet-SSD model and class labels
 net = cv2.dnn.readNetFromCaffe(
@@ -34,21 +35,21 @@ CLASSES = [
 ]
 
 TRAFFICMANCY_INITIAL_PROMPT = (
-    "You are Trafficmancy. You harness the power of urban movement to provide answers to life's burning questions. "
-    "By analyzing the number of cars, buses, motorbikes, cyclists, and pedestrians detected over a brief period, "
-    "you interpret the flow of the city to deliver guidance. Here's how you work:\n\n"
-    "1. **Cars**: Represent stability and progress. A higher count of cars means the path ahead is clear, suggesting forward "
+    "You are Trafficmancy. You harness the elements of the urban environment to provide answers to life's burning questions. "
+    "By analyzing the number of cars, buses, motorbikes, cyclists, and pedestrians detected in a single snapshot of the city, "
+    "you interpret the scene to deliver guidance. Here's how you work:\n\n"
+    "1. Cars: Represent stability and progress. A higher count of cars means the path ahead is clear, suggesting forward "
     "momentum and determination in your answer.\n\n"
-    "2. **Buses**: Symbolize community and collective effort. When buses are prevalent, they indicate that collaboration, "
+    "2. Buses: Symbolize community and collective effort. When buses are prevalent, they indicate that collaboration, "
     "shared goals, or considering the bigger picture will be crucial in your decision-making.\n\n"
-    "3. **Motorbikes**: Embody independence and speed. A higher presence of motorbikes suggests that quick thinking, bold actions, "
+    "3. Motorbikes: Embody independence and speed. A higher presence of motorbikes suggests that quick thinking, bold actions, "
     "or an individual approach might be the best way forward.\n\n"
-    "4. **Cyclists**: Symbolize agility and adaptability. When cyclists are in abundance, you advise flexibility and creative thinking "
+    "4. Cyclists: Symbolize agility and adaptability. When cyclists are in abundance, you advise flexibility and creative thinking "
     "as the keys to success.\n\n"
-    "5. **Pedestrians**: Embody patience and human connection. More pedestrians indicate that collaboration or a thoughtful pause may be "
+    "5. Pedestrians: Embody patience and human connection. More pedestrians indicate that collaboration or a thoughtful pause may be "
     "necessary for finding your answer.\n\n"
-    "You use this urban pulse to provide nuanced and insightful responses, blending the dynamics of the street with the questions people ask. "
-    "Whether it's a clear 'yes,' a thoughtful 'no,' or something in between, you guide the way based on the energy of the city around you."
+    "You use this urban scene to provide nuanced and insightful responses, blending the dynamics of the street with the questions people ask. "
+    "Whether it's a clear 'yes,' a thoughtful 'no,' or something in between, you guide the way based on the snapshot of the city in that moment."
 )
 
 
@@ -61,7 +62,7 @@ THINGS_I_CARE_ABOUT = ["car", "person", "bicycle", "bus", "motorbike"]
 
 counts = {thing: 0 for thing in THINGS_I_CARE_ABOUT}
 
-for i in range(10):
+while True:
     ret, frame = cap.read()
     if not ret:
         continue
@@ -139,22 +140,32 @@ for i in range(10):
 
     # Display the resulting frame
     cv2.imshow("Object Detection", frame)
-    cv2.imwrite(f"{i}.jpg", frame)
-    print(f"Save image {i}")
-    time.sleep(2)
+    cv2.imwrite(f"img.jpg", frame)
+    break
 
 
 # Release the capture and destroy all OpenCV windows
 # cap.release()
 # cv2.destroyAllWindows()
 
-response = ollama.chat(
-    model="phi3",
-    messages=[
-        {
-            "role": "user",
-            "content": f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians, {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed. My question - {query}',
-        },
-    ],
-)
-print(response["message"]["content"])
+models = ["orca-mini", "dolphin-phi", "tinyllama"]
+
+
+def ask_question(model_to_use, query, counts):
+    response = ollama.chat(
+        model=model_to_use,
+        messages=[
+            {
+                "role": "user",
+                "content": f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians, {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed. Based on this snapshot, analyse the observed elements and provide a symbolic interpretation that answers the following query: {query}',
+            },
+        ],
+    )
+    print(response["message"]["content"])
+
+
+print(counts)
+
+for model in models:
+    execution_time = timeit.timeit(lambda: ask_question(model, query, counts), number=1)
+    print(f"Execution time: {execution_time} seconds for {model} model.\n\n")
