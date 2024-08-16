@@ -19,7 +19,7 @@ TRAFFICMANCY_INITIAL_PROMPT = (
 )
 
 
-def ask_question(model_to_use: str, query: str, counts: dict[str, int]):
+def ask_question(model_to_use: str, query: str, counts: dict[str, int]) -> str:
     response = ollama.chat(
         model=model_to_use,
         messages=[
@@ -29,4 +29,4 @@ def ask_question(model_to_use: str, query: str, counts: dict[str, int]):
             },
         ],
     )
-    print(response["message"]["content"])
+    return response["message"]["content"]
