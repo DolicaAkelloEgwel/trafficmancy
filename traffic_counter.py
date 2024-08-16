@@ -125,5 +125,5 @@ class TrafficCounter:
             cv2.imwrite(f"img.jpg", frame)
             return counts
 
-    def test(self) -> Dict[str, int]:
+    def test(self) -> dict[str, int]:
         return {thing: randint(0, 15) for thing in THINGS_I_CARE_ABOUT}
