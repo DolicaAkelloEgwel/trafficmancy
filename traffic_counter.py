@@ -42,7 +42,7 @@ class TrafficCounter:
         # Initialize webcam
         self.cap = cv2.VideoCapture(1)
 
-    def count_traffic(self):
+    def count_traffic(self) -> dict[str, int]:
         counts = {thing: 0 for thing in THINGS_I_CARE_ABOUT}
 
         while True:
@@ -125,5 +125,5 @@ class TrafficCounter:
             cv2.imwrite(f"img.jpg", frame)
             return counts
 
-    def test():
+    def test(self) -> Dict[str, int]:
         return {thing: randint(0, 15) for thing in THINGS_I_CARE_ABOUT}
