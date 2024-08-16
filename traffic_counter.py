@@ -1,6 +1,7 @@
+from random import randint
+
 import cv2
 import numpy as np
-from random import randint
 
 # Load the pre-trained MobileNet-SSD model and class labels
 net = cv2.dnn.readNetFromCaffe(

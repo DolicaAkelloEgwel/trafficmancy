@@ -1,7 +1,8 @@
-from traffic_counter import TrafficCounter
-import ollama
 import timeit
 
+import ollama
+
+from traffic_counter import TrafficCounter
 
 TRAFFICMANCY_INITIAL_PROMPT = (
     "You are Trafficmancy. You harness the elements of the urban environment to provide answers to life's burning questions. "
