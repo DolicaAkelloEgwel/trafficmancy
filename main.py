@@ -1,38 +1,7 @@
-import cv2
-import time
-import numpy as np
+from traffic_counter import TrafficCounter
 import ollama
 import timeit
 
-# Load the pre-trained MobileNet-SSD model and class labels
-net = cv2.dnn.readNetFromCaffe(
-    "MobileNetSSD_deploy.prototxt.txt", "MobileNetSSD_deploy.caffemodel"
-)
-
-# Class labels for MobileNet-SSD
-CLASSES = [
-    "background",
-    "aeroplane",
-    "bicycle",
-    "bird",
-    "boat",
-    "bottle",
-    "bus",
-    "car",
-    "cat",
-    "chair",
-    "cow",
-    "diningtable",
-    "dog",
-    "horse",
-    "motorbike",
-    "person",
-    "pottedplant",
-    "sheep",
-    "sofa",
-    "train",
-    "tvmonitor",
-]
 
 TRAFFICMANCY_INITIAL_PROMPT = (
     "You are Trafficmancy. You harness the elements of the urban environment to provide answers to life's burning questions. "
@@ -55,100 +24,10 @@ TRAFFICMANCY_INITIAL_PROMPT = (
 
 query = input("What is your question? ")
 
-# Initialize webcam
-cap = cv2.VideoCapture(1)
-
-THINGS_I_CARE_ABOUT = ["car", "person", "bicycle", "bus", "motorbike"]
-
-counts = {thing: 0 for thing in THINGS_I_CARE_ABOUT}
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        continue
-
-    # Resize the frame to 300x300 pixels (as expected by the model)
-    resized_frame = cv2.resize(frame, (300, 300))
-
-    # Create a blob from the frame
-    blob = cv2.dnn.blobFromImage(resized_frame, 0.007843, (300, 300), 127.5)
-    net.setInput(blob)
-
-    # Perform object detection
-    detections = net.forward()
-
-    # Loop over the detections
-    for j in range(detections.shape[2]):
-        confidence = detections[0, 0, j, 2]
-
-        # Filter out weak detections
-        if confidence > 0.5:
-            idx = int(detections[0, 0, j, 1])
-            label = CLASSES[idx]
-
-            if label not in THINGS_I_CARE_ABOUT:
-                continue
-
-            # Calculate bounding box coordinates
-            box = detections[0, 0, j, 3:7] * np.array(
-                [frame.shape[1], frame.shape[0], frame.shape[1], frame.shape[0]]
-            )
-            (startX, startY, endX, endY) = box.astype("int")
-
-            # Draw the bounding box and label on the frame
-            cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
-            cv2.putText(
-                frame,
-                label,
-                (startX, startY - 15),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                (0, 255, 0),
-                2,
-            )
-
-            counts[label] += 1
-
-    # Display the counts on the frame
-    cv2.putText(
-        frame,
-        f'Cars: {counts["car"]}',
-        (10, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (255, 0, 0),
-        2,
-    )
-    cv2.putText(
-        frame,
-        f'Pedestrians: {counts["person"]}',
-        (10, 70),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (255, 0, 0),
-        2,
-    )
-    cv2.putText(
-        frame,
-        f'Cyclists: {counts["bicycle"]}',
-        (10, 110),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (255, 0, 0),
-        2,
-    )
-
-    # Display the resulting frame
-    cv2.imshow("Object Detection", frame)
-    cv2.imwrite(f"img.jpg", frame)
-    break
-
-
-# Release the capture and destroy all OpenCV windows
-# cap.release()
-# cv2.destroyAllWindows()
-
 models = ["orca-mini", "dolphin-phi", "tinyllama"]
+
+traffic_counter = TrafficCounter()
+counts = traffic_counter.count_traffic()
 
 
 def ask_question(model_to_use, query, counts):
