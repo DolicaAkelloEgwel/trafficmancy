@@ -6,6 +6,40 @@ import depthai as dai
 
 ROI_POSITION = 0.5
 
+labelMap = [
+    "background",
+    "aeroplane",
+    "bicycle",
+    "bird",
+    "boat",
+    "bottle",
+    "bus",
+    "car",
+    "cat",
+    "chair",
+    "cow",
+    "diningtable",
+    "dog",
+    "horse",
+    "motorbike",
+    "person",
+    "pottedplant",
+    "sheep",
+    "sofa",
+    "train",
+    "tvmonitor",
+]
+
+TRACKING_LABELS = ["motorbike", "car", "bus", "person", "bicycle"]
+RIGHT_COUNT = {label: 0 for label in TRACKING_LABELS}
+LEFT_COUNT = {label: 0 for label in TRACKING_LABELS}
+TRACKING_IDX = [labelMap.index(label) for label in TRACKING_LABELS]
+
+
+def label_to_text(label: int) -> str:
+    return labelMap.index(label)
+
+
 model = blobconverter.from_zoo(name="mobilenet-ssd", shaves=6)
 
 # Create pipeline
@@ -38,7 +72,7 @@ nn.out.link(nnOut.input)
 
 # Create and configure the object tracker
 objectTracker = pipeline.create(dai.node.ObjectTracker)
-# objectTracker.setDetectionLabelsToTrack([0])  # track only person
+objectTracker.setDetectionLabelsToTrack(TRACKING_IDX)  # track only person
 # possible tracking types: ZERO_TERM_COLOR_HISTOGRAM, ZERO_TERM_IMAGELESS, SHORT_TERM_IMAGELESS, SHORT_TERM_KCF
 objectTracker.setTrackerType(dai.TrackerType.ZERO_TERM_COLOR_HISTOGRAM)
 # take the smallest ID when new object is tracked, possible options: SMALLEST_ID, UNIQUE_ID
@@ -152,9 +186,12 @@ with dai.Device(pipeline) as device:
                                 centroid[0] > ROI_POSITION * width
                                 and direction > 0
                                 and np.mean(x) < ROI_POSITION * width
-                            ):
+                            ):  # right to left
                                 counter[1] += 1
                                 to.counted = True
+
+                                RIGHT_COUNT[label_to_text(t.label)] += 1
+
                             elif (
                                 centroid[0] < ROI_POSITION * width
                                 and direction < 0
@@ -163,9 +200,11 @@ with dai.Device(pipeline) as device:
                                 counter[0] += 1
                                 to.counted = True
 
+                                LEFT_COUNT[label_to_text(t.label)] += 1
+
                         to.centroids.append(centroid)
 
-                    trackableObjects[t.id] = to
+                    trackableObjects[t.id] = to  # right to left
 
                     if (
                         t.status != dai.Tracklet.TrackingStatus.LOST
