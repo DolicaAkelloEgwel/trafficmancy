@@ -5,4 +5,4 @@ f = Figlet(font='doom')
 
 with ptg.WindowManager() as manager:
     manager.layout.add_slot("Header")
-    manager.add(ptg.Window(f.renderText('trafficmancy'), box="EMPTY"))
+    manager.add(ptg.Window(f.renderText('trafficmancy') + "\nLook for the sychroniCITY...", box="EMPTY"))
