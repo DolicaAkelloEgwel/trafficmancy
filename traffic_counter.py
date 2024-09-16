@@ -36,8 +36,8 @@ LEFT_COUNT = {label: 0 for label in TRACKING_LABELS}
 TRACKING_IDX = [labelMap.index(label) for label in TRACKING_LABELS]
 
 
-def label_to_text(label: int) -> str:
-    return labelMap.index(label)
+def label_to_text(idx: int) -> str:
+    return labelMap[idx]
 
 
 model = blobconverter.from_zoo(name="mobilenet-ssd", shaves=6)
@@ -102,152 +102,163 @@ class TrackableObject:
         self.counted = False
 
 
-# Pipeline defined, now the device is connected to
-with dai.Device(pipeline) as device:
+def get_traffic_count():
 
-    # Define queues for image frames
+    # Pipeline defined, now the device is connected to
+    with dai.Device(pipeline) as device:
 
-    # Output queue for retrieving camera frames from device
-    qOut_Frame = device.getOutputQueue(name="outFrame", maxSize=4, blocking=False)
+        # Define queues for image frames
 
-    qDet = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
-    tracklets = device.getOutputQueue("tracklets", 4, False)
+        # Output queue for retrieving camera frames from device
+        qOut_Frame = device.getOutputQueue(name="outFrame", maxSize=4, blocking=False)
 
-    def should_run():
-        return True
+        qDet = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+        tracklets = device.getOutputQueue("tracklets", 4, False)
 
-    def get_frame():
-        in_Frame = qOut_Frame.get()
-        frame = in_Frame.getCvFrame()
-        return True, frame
+        startTime = time.monotonic()
 
-    startTime = time.monotonic()
-    detections = []
-    frame_count = 0
-    counter = [0, 0, 0, 0]  # left, right, up, down
+        def should_run():
+            return time.monotonic() - startTime < 10.0
 
-    trackableObjects = {}
-
-    def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
-        return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
-
-    while should_run():
-        # Get image frames from camera or video file
-        read_correctly, frame = get_frame()
-        if not read_correctly:
-            break
-
-        in_Frame = qOut_Frame.tryGet()
-
-        if in_Frame is not None:
+        def get_frame():
+            in_Frame = qOut_Frame.get()
             frame = in_Frame.getCvFrame()
-            cv2.putText(
-                frame,
-                "NN fps: {:.2f}".format(frame_count / (time.monotonic() - startTime)),
-                (2, frame.shape[0] - 4),
-                cv2.FONT_HERSHEY_TRIPLEX,
-                0.4,
-                color=(255, 255, 255),
-            )
+            return True, frame
 
-        inDet = qDet.tryGet()
-        if inDet is not None:
-            detections = inDet.detections
-            frame_count += 1
+        detections = []
+        frame_count = 0
+        counter = [0, 0, 0, 0]  # left, right, up, down
 
-        track = tracklets.tryGet()
+        trackableObjects = {}
 
-        if frame is not None:
-            height = frame.shape[0]
-            width = frame.shape[1]
-
-            if track:
-                trackletsData = track.tracklets
-                for t in trackletsData:
-                    to = trackableObjects.get(t.id, None)
-
-                    # calculate centroid
-                    roi = t.roi.denormalize(width, height)
-                    x1 = int(roi.topLeft().x)
-                    y1 = int(roi.topLeft().y)
-                    x2 = int(roi.bottomRight().x)
-                    y2 = int(roi.bottomRight().y)
-                    centroid = (int((x2 - x1) / 2 + x1), int((y2 - y1) / 2 + y1))
-
-                    # If new tracklet, save its centroid
-                    if t.status == dai.Tracklet.TrackingStatus.NEW:
-                        to = TrackableObject(t.id, centroid)
-                    elif to is not None:
-                        if not to.counted:
-                            x = [c[0] for c in to.centroids]
-                            direction = centroid[0] - np.mean(x)
-
-                            if (
-                                centroid[0] > ROI_POSITION * width
-                                and direction > 0
-                                and np.mean(x) < ROI_POSITION * width
-                            ):  # right to left
-                                counter[1] += 1
-                                to.counted = True
-
-                                RIGHT_COUNT[label_to_text(t.label)] += 1
-
-                            elif (
-                                centroid[0] < ROI_POSITION * width
-                                and direction < 0
-                                and np.mean(x) > ROI_POSITION * width
-                            ):
-                                counter[0] += 1
-                                to.counted = True
-
-                                LEFT_COUNT[label_to_text(t.label)] += 1
-
-                        to.centroids.append(centroid)
-
-                    trackableObjects[t.id] = to  # right to left
-
-                    if (
-                        t.status != dai.Tracklet.TrackingStatus.LOST
-                        and t.status != dai.Tracklet.TrackingStatus.REMOVED
-                    ):
-                        text = "ID {}".format(t.id)
-                        cv2.putText(
-                            frame,
-                            text,
-                            (centroid[0] - 10, centroid[1] - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.5,
-                            (255, 255, 255),
-                            2,
-                        )
-                        cv2.circle(
-                            frame, (centroid[0], centroid[1]), 4, (255, 255, 255), -1
-                        )
-
-            # Draw ROI line
-            cv2.line(
-                frame,
-                (int(ROI_POSITION * width), 0),
-                (int(ROI_POSITION * width), height),
-                (0xFF, 0, 0),
-                5,
-            )
-
-            # display count and status
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(
-                frame,
-                f"Left: {counter[0]}; Right: {counter[1]}",
-                (10, 35),
-                font,
-                0.8,
-                (0, 0xFF, 0xFF),
-                2,
-                cv2.FONT_HERSHEY_SIMPLEX,
-            )
-
-            cv2.imshow("cumulative_object_counting", frame)
-            if cv2.waitKey(25) & 0xFF == ord("q"):
+        while should_run():
+            # Get image frames from camera or video file
+            read_correctly, frame = get_frame()
+            if not read_correctly:
                 break
 
-    cv2.destroyAllWindows()
+            in_Frame = qOut_Frame.tryGet()
+
+            if in_Frame is not None:
+                frame = in_Frame.getCvFrame()
+                cv2.putText(
+                    frame,
+                    "NN fps: {:.2f}".format(
+                        frame_count / (time.monotonic() - startTime)
+                    ),
+                    (2, frame.shape[0] - 4),
+                    cv2.FONT_HERSHEY_TRIPLEX,
+                    0.4,
+                    color=(255, 255, 255),
+                )
+
+            inDet = qDet.tryGet()
+            if inDet is not None:
+                detections = inDet.detections
+                frame_count += 1
+
+            track = tracklets.tryGet()
+
+            if frame is not None:
+                height = frame.shape[0]
+                width = frame.shape[1]
+
+                if track:
+                    trackletsData = track.tracklets
+                    for t in trackletsData:
+                        to = trackableObjects.get(t.id, None)
+
+                        # calculate centroid
+                        roi = t.roi.denormalize(width, height)
+                        x1 = int(roi.topLeft().x)
+                        y1 = int(roi.topLeft().y)
+                        x2 = int(roi.bottomRight().x)
+                        y2 = int(roi.bottomRight().y)
+                        centroid = (int((x2 - x1) / 2 + x1), int((y2 - y1) / 2 + y1))
+
+                        # If new tracklet, save its centroid
+                        if t.status == dai.Tracklet.TrackingStatus.NEW:
+                            to = TrackableObject(t.id, centroid)
+                        elif to is not None:
+                            if not to.counted:
+                                x = [c[0] for c in to.centroids]
+                                direction = centroid[0] - np.mean(x)
+
+                                if (
+                                    centroid[0] > ROI_POSITION * width
+                                    and direction > 0
+                                    and np.mean(x) < ROI_POSITION * width
+                                ):  # right to left
+                                    counter[1] += 1
+                                    to.counted = True
+
+                                    RIGHT_COUNT[label_to_text(t.label)] += 1
+
+                                elif (
+                                    centroid[0] < ROI_POSITION * width
+                                    and direction < 0
+                                    and np.mean(x) > ROI_POSITION * width
+                                ):
+                                    counter[0] += 1
+                                    to.counted = True
+
+                                    LEFT_COUNT[label_to_text(t.label)] += 1
+
+                            to.centroids.append(centroid)
+
+                        trackableObjects[t.id] = to  # right to left
+
+                        if (
+                            t.status != dai.Tracklet.TrackingStatus.LOST
+                            and t.status != dai.Tracklet.TrackingStatus.REMOVED
+                        ):
+                            text = "ID {}".format(t.id)
+                            cv2.putText(
+                                frame,
+                                text,
+                                (centroid[0] - 10, centroid[1] - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5,
+                                (255, 255, 255),
+                                2,
+                            )
+                            cv2.circle(
+                                frame,
+                                (centroid[0], centroid[1]),
+                                4,
+                                (255, 255, 255),
+                                -1,
+                            )
+
+                # Draw ROI line
+                cv2.line(
+                    frame,
+                    (int(ROI_POSITION * width), 0),
+                    (int(ROI_POSITION * width), height),
+                    (0xFF, 0, 0),
+                    5,
+                )
+
+                # display count and status
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                cv2.putText(
+                    frame,
+                    f"Left: {counter[0]}; Right: {counter[1]}",
+                    (10, 35),
+                    font,
+                    0.8,
+                    (0, 0xFF, 0xFF),
+                    2,
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                )
+
+                cv2.imshow("cumulative_object_counting", frame)
+                if cv2.waitKey(25) & 0xFF == ord("q"):
+                    break
+
+        cv2.destroyAllWindows()
+
+    return LEFT_COUNT, RIGHT_COUNT
+
+
+print(get_traffic_count())
