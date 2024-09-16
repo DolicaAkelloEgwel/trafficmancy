@@ -31,8 +31,7 @@ labelMap = [
 ]
 
 TRACKING_LABELS = ["motorbike", "car", "bus", "person", "bicycle"]
-RIGHT_COUNT = {label: 0 for label in TRACKING_LABELS}
-LEFT_COUNT = {label: 0 for label in TRACKING_LABELS}
+TRAFFIC_COUNT = {label: 0 for label in TRACKING_LABELS}
 TRACKING_IDX = [labelMap.index(label) for label in TRACKING_LABELS]
 
 
@@ -192,7 +191,7 @@ def get_traffic_count():
                                     counter[1] += 1
                                     to.counted = True
 
-                                    RIGHT_COUNT[label_to_text(t.label)] += 1
+                                    TRAFFIC_COUNT[label_to_text(t.label)] += 1
 
                                 elif (
                                     centroid[0] < ROI_POSITION * width
@@ -202,7 +201,7 @@ def get_traffic_count():
                                     counter[0] += 1
                                     to.counted = True
 
-                                    LEFT_COUNT[label_to_text(t.label)] += 1
+                                    TRAFFIC_COUNT[label_to_text(t.label)] += 1
 
                             to.centroids.append(centroid)
 
@@ -258,7 +257,7 @@ def get_traffic_count():
 
         cv2.destroyAllWindows()
 
-    return LEFT_COUNT, RIGHT_COUNT
+    return TRAFFIC_COUNT
 
 
 print(get_traffic_count())
