@@ -1,54 +1,111 @@
 import pyxel
+from traffic_counter import get_traffic_count
+from ask_question import ask_question
 
 APP_WIDTH = 256 * 2
 APP_HEIGHT = 144 * 2
+PADDING = 20
 
+BOX_WIDTH = APP_WIDTH - PADDING * 2
+
+PROCESSING_TEXT = "Processing"
+
+KEY_MAP = {}
 
 class App:
     def __init__(self):
-        pyxel.init(APP_WIDTH, APP_HEIGHT, title="Simple UI")
-        self.input_text = ""
+        pyxel.init(APP_WIDTH, APP_HEIGHT, title="Trafficmancy")
+        self.input_text = "?????????"
         self.output_text = ""
-        self.is_typing = True  # Track if typing in input box
-        pyxel.mouse(True)  # Enable mouse
+        self.processing_query = False  # Track if typing in input box
+        self.count = 0
         pyxel.run(self.update, self.draw)
 
     def update(self):
         # Handle typing in the input box
-        if self.is_typing:
-            for i in range(pyxel.KEY_A, pyxel.KEY_Z + 1):
-                if pyxel.btnp(i):
-                    self.input_text += chr(i + 32)  # Convert key to lowercase
+        if not self.processing_query:
+            for i in range(26):
+                if pyxel.btnp(pyxel.KEY_A + i):
+                    if pyxel.btn(pyxel.KEY_SHIFT):  # Check if shift is pressed for uppercase
+                        self.input_text += chr(pyxel.KEY_A + i).upper()
+                    else:
+                        self.input_text += chr(pyxel.KEY_A + i)
 
-            if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.input_text:
-                self.input_text = self.input_text[:-1]
+            # Handle numbers 0-9
+            for i in range(10):
+                if pyxel.btnp(pyxel.KEY_0 + i):
+                    self.input_text += chr(pyxel.KEY_0 + i)
 
+            # Handle punctuation symbols using their respective Pyxel key codes
             if pyxel.btnp(pyxel.KEY_SPACE):
-                self.input_text += " "
+                self.input_text += ' '
+            if pyxel.btnp(pyxel.KEY_COMMA):
+                self.input_text += ','
+            if pyxel.btnp(pyxel.KEY_PERIOD):
+                self.input_text += '.'
+            if pyxel.btnp(pyxel.KEY_SLASH):
+                self.input_text += '/'
+            if pyxel.btnp(pyxel.KEY_SEMICOLON):
+                self.input_text += ';'
+            if pyxel.btnp(pyxel.KEY_MINUS):
+                self.input_text += '-'
+            if pyxel.btnp(pyxel.KEY_EQUALS):
+                self.input_text += '='
+            if pyxel.btnp(pyxel.KEY_BACKSLASH):
+                self.input_text += '\\'
+
+            # Handle shift-modified symbols for special characters like ?, !, etc.
+            if pyxel.btn(pyxel.KEY_SHIFT):
+                if pyxel.btnp(pyxel.KEY_1):
+                    self.input_text += '!'
+                if pyxel.btnp(pyxel.KEY_2):
+                    self.input_text += '@'
+                if pyxel.btnp(pyxel.KEY_3):
+                    self.input_text += '#'
+                if pyxel.btnp(pyxel.KEY_4):
+                    self.input_text += '$'
+                if pyxel.btnp(pyxel.KEY_5):
+                    self.input_text += '%'
+                if pyxel.btnp(pyxel.KEY_6):
+                    self.input_text += '^'
+                if pyxel.btnp(pyxel.KEY_7):
+                    self.input_text += '&'
+                if pyxel.btnp(pyxel.KEY_8):
+                    self.input_text += '*'
+                if pyxel.btnp(pyxel.KEY_9):
+                    self.input_text += '('
+                if pyxel.btnp(pyxel.KEY_0):
+                    self.input_text += ')'
+                if pyxel.btnp(pyxel.KEY_COMMA):
+                    self.input_text += '<'
+                if pyxel.btnp(pyxel.KEY_PERIOD):
+                    self.input_text += '>'
+                if pyxel.btnp(pyxel.KEY_SLASH):
+                    self.input_text += '?'
+
+        # Handle backspace to remove last character
+        if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.input_text:
+            self.input_text = self.input_text[:-1]
 
         # Check for submit button click
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            if 100 <= pyxel.mouse_x <= 140 and 50 <= pyxel.mouse_y <= 60:
-                self.output_text = f"You entered: {self.input_text}"
-                self.input_text = ""  # Clear input after submission
+        if pyxel.btnp(pyxel.KEY_RETURN):
+            self.output_text = PROCESSING_TEXT + "..."
+            traffic_count = get_traffic_count()
+            self.output_text = ask_question(self.input_text, traffic_count)
 
     def draw(self):
         pyxel.cls(7)  # Clear screen to white
 
         # Draw instruction text at the top
-        pyxel.text(10, 10, "Type in your query:", 0)
+        pyxel.text(PADDING, 10, "Type in your query:", 0)
 
         # Draw input box
-        pyxel.rect(10, 50, 90, 10, 0)  # Black rectangle for input box
-        pyxel.text(12, 52, self.input_text, 7)  # Display user input text
-
-        # Draw submit button
-        pyxel.rect(100, 50, 40, 10, 8)  # Red rectangle for button
-        pyxel.text(105, 52, "Submit", 7)  # Submit button label
+        pyxel.rect(PADDING, 50, BOX_WIDTH, 10, 0)  # Black rectangle for input box
+        pyxel.text(PADDING + 2, 52, self.input_text, 7)  # Display user input text
 
         # Draw output box
-        pyxel.rect(10, 80, 130, 20, 0)  # Black rectangle for output box
-        pyxel.text(12, 85, self.output_text, 7)  # Display the output text
+        pyxel.rect(PADDING, 80, BOX_WIDTH, 20, 0)  # Black rectangle for output box
+        pyxel.text(PADDING + 2, 85, self.output_text, 7)  # Display the output text
 
 
 # Run the application
