@@ -37,4 +37,5 @@ def ask_question(query: str, counts: dict[str, int]) -> str:
         result = response.json()
         return result["response"]
     else:
+        # something else should happen here...
         return f"Failed to get a response: {response.status_code}"
