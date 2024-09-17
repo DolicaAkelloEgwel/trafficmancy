@@ -258,6 +258,3 @@ def get_traffic_count():
         cv2.destroyAllWindows()
 
     return TRAFFIC_COUNT
-
-
-print(get_traffic_count())
