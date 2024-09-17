@@ -5,7 +5,7 @@ from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError
 import sys
 
-SUBTITLE = "Look at the sychroniCITY..."
+SUBTITLE = "Look for the sychroniCITY..."
 
 def demo(screen):
     effects = [
