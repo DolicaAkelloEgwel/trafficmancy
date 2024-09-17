@@ -1,9 +1,12 @@
 import pyxel
 
+APP_WIDTH = 256 * 2
+APP_HEIGHT = 144 * 2
+
 
 class App:
     def __init__(self):
-        pyxel.init(160, 120, title="Simple UI")
+        pyxel.init(APP_WIDTH, APP_HEIGHT, title="Simple UI")
         self.input_text = ""
         self.output_text = ""
         self.is_typing = True  # Track if typing in input box
