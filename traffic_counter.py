@@ -5,6 +5,7 @@ import time
 import depthai as dai
 
 ROI_POSITION = 0.5
+SHOW = False
 
 labelMap = [
     "background",
@@ -251,7 +252,8 @@ def get_traffic_count():
                     cv2.FONT_HERSHEY_SIMPLEX,
                 )
 
-                cv2.imshow("cumulative_object_counting", frame)
+                if SHOW:
+                    cv2.imshow("cumulative_object_counting", frame)
                 if cv2.waitKey(25) & 0xFF == ord("q"):
                     break
 
