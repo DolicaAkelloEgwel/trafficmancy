@@ -100,17 +100,18 @@ class App:
         pyxel.cls(7)  # Clear screen to white
 
         pyxel.blt(0, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
+        pyxel.blt(APP_WIDTH // 2, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
 
-        # Draw instruction text at the top
-        pyxel.text(PADDING, 10, "Type in your query:", 0)
+        pyxel.blt(0, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
+        pyxel.blt(APP_WIDTH // 2, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
 
-        # Draw input box
-        pyxel.rect(PADDING, 50, BOX_WIDTH, 10, 0)  # Black rectangle for input box
-        pyxel.text(PADDING + 2, 52, self.input_text, 7)  # Display user input text
+        # Create input box
+        pyxel.rect(PADDING, 80, BOX_WIDTH, 10, 0)  # Black rectangle for input
+        pyxel.text(PADDING + 2, 82, self.input_text, 7)  # Display the input text
 
-        # Draw output box
-        pyxel.rect(PADDING, 80, BOX_WIDTH, 20, 0)  # Black rectangle for output box
-        pyxel.text(PADDING + 2, 85, self.output_text, 7)  # Display the output text
+        # Create output box
+        pyxel.rect(PADDING, 110, BOX_WIDTH, 150, 0)  # Black rectangle for output box
+        pyxel.text(PADDING + 2, 115, self.output_text, 7)  # Display user output text
 
 
 # Run the application
