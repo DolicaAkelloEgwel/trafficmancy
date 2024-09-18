@@ -12,10 +12,13 @@ PROCESSING_TEXT = "Processing"
 
 KEY_MAP = {}
 
+
+
 class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Trafficmancy")
-        self.input_text = "?????????"
+        pyxel.load("background.pyxres")
+        self.input_text = ""
         self.output_text = ""
         self.processing_query = False  # Track if typing in input box
         self.count = 0
@@ -95,6 +98,8 @@ class App:
 
     def draw(self):
         pyxel.cls(7)  # Clear screen to white
+
+        pyxel.blt(0, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
 
         # Draw instruction text at the top
         pyxel.text(PADDING, 10, "Type in your query:", 0)
