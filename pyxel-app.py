@@ -74,12 +74,6 @@ class App:
             # Handle punctuation symbols using their respective Pyxel key codes
             if pyxel.btnp(pyxel.KEY_SPACE):
                 self.input_text += " "
-            if pyxel.btnp(pyxel.KEY_COMMA):
-                self.input_text += ","
-            if pyxel.btnp(pyxel.KEY_PERIOD):
-                self.input_text += "."
-            if pyxel.btnp(pyxel.KEY_SLASH):
-                self.input_text += "/"
             if pyxel.btnp(pyxel.KEY_SEMICOLON):
                 self.input_text += ";"
             if pyxel.btnp(pyxel.KEY_MINUS):
@@ -88,6 +82,14 @@ class App:
                 self.input_text += "="
             if pyxel.btnp(pyxel.KEY_BACKSLASH):
                 self.input_text += "\\"
+
+            if not pyxel.btn(pyxel.KEY_SHIFT):
+                if pyxel.btnp(pyxel.KEY_COMMA):
+                    self.input_text += ","
+                if pyxel.btnp(pyxel.KEY_PERIOD):
+                    self.input_text += "."
+                if pyxel.btnp(pyxel.KEY_SLASH):
+                    self.input_text += "/"
 
             # Handle shift-modified symbols for special characters like ?, !, etc.
             if pyxel.btn(pyxel.KEY_SHIFT):
