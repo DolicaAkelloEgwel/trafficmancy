@@ -12,6 +12,34 @@ PROCESSING_TEXT = "Processing"
 
 KEY_MAP = {}
 
+CHARACTER_LIMIT = 117
+
+
+def _split_up_long_text(output: str) -> str:
+    if len(output) <= CHARACTER_LIMIT:
+        return output
+
+    next_line = output[:CHARACTER_LIMIT]
+    remaining_text = output[CHARACTER_LIMIT:]
+
+    if "\n" in next_line:
+        break_idx = next_line.index("\n")
+        return (
+            next_line[:break_idx]
+            + "\n"
+            + _split_up_long_text(next_line[break_idx + 1 :] + remaining_text)
+        )
+
+    if remaining_text[0] == " ":
+        return next_line + "\n" + _split_up_long_text(remaining_text[1:])
+
+    last_space_idx = next_line.rfind(" ")
+    return (
+        next_line[:last_space_idx]
+        + "\n"
+        + _split_up_long_text(next_line[last_space_idx + 1 :] + remaining_text)
+    )
+
 
 class App:
     def __init__(self):
@@ -40,7 +68,7 @@ class App:
 
             # Handle numbers 0-9
             for i in range(10):
-                if pyxel.btnp(pyxel.KEY_0 + i):
+                if not pyxel.btn(pyxel.KEY_SHIFT) and pyxel.btnp(pyxel.KEY_0 + i):
                     self.input_text += chr(pyxel.KEY_0 + i)
 
             # Handle punctuation symbols using their respective Pyxel key codes
@@ -99,7 +127,7 @@ class App:
             self.output_text = PROCESSING_TEXT + "..."
             traffic_count = get_traffic_count()
             self.output_text = ask_question(self.input_text, traffic_count)
-
+            self.output_text = _split_up_long_text(self.output_text)
             print(self.output_text)
             self.end = len(self.output_text)
             self.progress = 1
