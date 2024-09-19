@@ -1,7 +1,18 @@
 import pyxel
 
-from ask_question import ask_question
-from traffic_counter import get_traffic_count
+TESTING = False
+
+if TESTING:
+
+    def ask_question(arg1, arg2):
+        return "Test"
+
+    def get_traffic_count():
+        return None
+
+else:
+    from ask_question import ask_question
+    from traffic_counter import get_traffic_count
 
 APP_WIDTH = 256 * 2
 APP_HEIGHT = 144 * 2
@@ -14,6 +25,8 @@ KEY_MAP = {}
 CHARACTER_LIMIT = 117
 
 INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + C (Note - You may have to wait a while, as Trafficmany thinks about your query...)"
+
+TITLE = "Trafficmancy"
 
 
 def _split_up_long_text(output: str) -> str:
@@ -53,6 +66,7 @@ class App:
         self.end = 1
         self.processing_query = False  # Track if typing in input box
         self.count = 0
+        self.wizard = pyxel.Font("wizard.bdf")
         pyxel.run(self.update, self.draw)
 
     def update(self):
@@ -142,6 +156,12 @@ class App:
 
         pyxel.blt(0, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
         pyxel.blt(APP_WIDTH // 2, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
+
+        pyxel.text(161, 25, TITLE, 10, self.wizard)
+        pyxel.text(160, 24, TITLE, 10, self.wizard)
+        pyxel.text(160, 26, TITLE, 10, self.wizard)
+        pyxel.text(159, 25, TITLE, 10, self.wizard)
+        pyxel.text(160, 25, TITLE, 0, self.wizard)
 
         # Create input box
         pyxel.rect(
