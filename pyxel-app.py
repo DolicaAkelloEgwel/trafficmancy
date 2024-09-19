@@ -1,6 +1,6 @@
 import pyxel
 
-TESTING = False
+TESTING = True
 
 if TESTING:
 
@@ -66,6 +66,71 @@ OUTPUT_BOX_HEIGHT = 180
 TITLE_Y = 16
 
 
+def _get_character() -> str:
+
+    for i in range(26):
+        if pyxel.btnp(pyxel.KEY_A + i):
+            if pyxel.btn(pyxel.KEY_SHIFT):  # Check if shift is pressed for uppercase
+                return chr(pyxel.KEY_A + i).upper()
+            else:
+                return chr(pyxel.KEY_A + i)
+
+    # Handle numbers 0-9
+    for i in range(10):
+        if not pyxel.btn(pyxel.KEY_SHIFT) and pyxel.btnp(pyxel.KEY_0 + i):
+            self.input_text += chr(pyxel.KEY_0 + i)
+
+    if pyxel.btnp(pyxel.KEY_SPACE):
+        return " "
+    if pyxel.btnp(pyxel.KEY_SEMICOLON):
+        return ";"
+    if pyxel.btnp(pyxel.KEY_MINUS):
+        return "-"
+    if pyxel.btnp(pyxel.KEY_EQUALS):
+        return "="
+    if pyxel.btnp(pyxel.KEY_BACKSLASH):
+        return "\\"
+
+    if not pyxel.btn(pyxel.KEY_SHIFT):
+        if pyxel.btnp(pyxel.KEY_COMMA):
+            return ","
+        if pyxel.btnp(pyxel.KEY_PERIOD):
+            return "."
+        if pyxel.btnp(pyxel.KEY_SLASH):
+            return "/"
+
+    # Handle shift-modified symbols for special characters like ?, !, etc.
+    if pyxel.btn(pyxel.KEY_SHIFT):
+        if pyxel.btnp(pyxel.KEY_1):
+            return "!"
+        if pyxel.btnp(pyxel.KEY_2):
+            return "@"
+        if pyxel.btnp(pyxel.KEY_3):
+            return "#"
+        if pyxel.btnp(pyxel.KEY_4):
+            return "$"
+        if pyxel.btnp(pyxel.KEY_5):
+            return "%"
+        if pyxel.btnp(pyxel.KEY_6):
+            return "^"
+        if pyxel.btnp(pyxel.KEY_7):
+            return "&"
+        if pyxel.btnp(pyxel.KEY_8):
+            return "*"
+        if pyxel.btnp(pyxel.KEY_9):
+            return "("
+        if pyxel.btnp(pyxel.KEY_0):
+            return ")"
+        if pyxel.btnp(pyxel.KEY_COMMA):
+            return "<"
+        if pyxel.btnp(pyxel.KEY_PERIOD):
+            return ">"
+        if pyxel.btnp(pyxel.KEY_SLASH):
+            return "?"
+
+    return ""
+
+
 def _split_up_long_text(output: str) -> str:
     if len(output) <= CHARACTER_LIMIT:
         return output
@@ -101,81 +166,20 @@ class App:
         self.partial_text = ""
         self.progress = 1
         self.end = 1
-        self.count = 0
         self.wizard = pyxel.Font("wizard.bdf")
         pyxel.run(self.update, self.draw)
 
     def update(self):
 
-        for i in range(26):
-            if pyxel.btnp(pyxel.KEY_A + i):
-                if pyxel.btn(
-                    pyxel.KEY_SHIFT
-                ):  # Check if shift is pressed for uppercase
-                    self.input_text += chr(pyxel.KEY_A + i).upper()
-                else:
-                    self.input_text += chr(pyxel.KEY_A + i)
-
-        # Handle numbers 0-9
-        for i in range(10):
-            if not pyxel.btn(pyxel.KEY_SHIFT) and pyxel.btnp(pyxel.KEY_0 + i):
-                self.input_text += chr(pyxel.KEY_0 + i)
-
-        # Handle punctuation symbols using their respective Pyxel key codes
-        if pyxel.btnp(pyxel.KEY_SPACE):
-            self.input_text += " "
-        if pyxel.btnp(pyxel.KEY_SEMICOLON):
-            self.input_text += ";"
-        if pyxel.btnp(pyxel.KEY_MINUS):
-            self.input_text += "-"
-        if pyxel.btnp(pyxel.KEY_EQUALS):
-            self.input_text += "="
-        if pyxel.btnp(pyxel.KEY_BACKSLASH):
-            self.input_text += "\\"
-
-        if not pyxel.btn(pyxel.KEY_SHIFT):
-            if pyxel.btnp(pyxel.KEY_COMMA):
-                self.input_text += ","
-            if pyxel.btnp(pyxel.KEY_PERIOD):
-                self.input_text += "."
-            if pyxel.btnp(pyxel.KEY_SLASH):
-                self.input_text += "/"
-
-        # Handle shift-modified symbols for special characters like ?, !, etc.
-        if pyxel.btn(pyxel.KEY_SHIFT):
-            if pyxel.btnp(pyxel.KEY_1):
-                self.input_text += "!"
-            if pyxel.btnp(pyxel.KEY_2):
-                self.input_text += "@"
-            if pyxel.btnp(pyxel.KEY_3):
-                self.input_text += "#"
-            if pyxel.btnp(pyxel.KEY_4):
-                self.input_text += "$"
-            if pyxel.btnp(pyxel.KEY_5):
-                self.input_text += "%"
-            if pyxel.btnp(pyxel.KEY_6):
-                self.input_text += "^"
-            if pyxel.btnp(pyxel.KEY_7):
-                self.input_text += "&"
-            if pyxel.btnp(pyxel.KEY_8):
-                self.input_text += "*"
-            if pyxel.btnp(pyxel.KEY_9):
-                self.input_text += "("
-            if pyxel.btnp(pyxel.KEY_0):
-                self.input_text += ")"
-            if pyxel.btnp(pyxel.KEY_COMMA):
-                self.input_text += "<"
-            if pyxel.btnp(pyxel.KEY_PERIOD):
-                self.input_text += ">"
-            if pyxel.btnp(pyxel.KEY_SLASH):
-                self.input_text += "?"
+        # Add a character to the input box
+        self.input_text += _get_character()
 
         # Handle backspace to remove last character
         if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.input_text:
             self.input_text = self.input_text[:-1]
 
-        # Check for submit button click
-        if pyxel.btnp(pyxel.KEY_RETURN):
+        # Generate a reply when the user hits Enter
+        if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
             traffic_count = get_traffic_count()
             self.output_text = ask_question(self.input_text, traffic_count)
             self.output_text = _split_up_long_text(self.output_text)
@@ -184,14 +188,16 @@ class App:
             self.progress = 1
 
     def draw(self):
-        pyxel.cls(7)  # Clear screen to white
+        # Clear the screen
+        pyxel.cls(7)
 
+        # Fill with the background image
         pyxel.blt(0, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
         pyxel.blt(APP_WIDTH // 2, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
-
         pyxel.blt(0, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
         pyxel.blt(APP_WIDTH // 2, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
 
+        # Display the title + a "border"
         pyxel.text(161, TITLE_Y, TITLE, 8, self.wizard)
         pyxel.text(160, TITLE_Y - 1, TITLE, 8, self.wizard)
         pyxel.text(160, TITLE_Y + 1, TITLE, 8, self.wizard)
@@ -220,15 +226,19 @@ class App:
             PADDING + 2, OUTPUT_BOX_Y + 2, self.partial_text, 7
         )  # Display user output text
 
+        # Display the partial output text
         self.partial_text = self.output_text[: self.progress]
 
+        # Increase the counter for the output text display - unless we're already at the end
         if self.progress < self.end:
             self.progress += 1
 
-        pyxel.rect(0, APP_HEIGHT - 11, APP_WIDTH, 12, 8)  # Red line for
+        pyxel.rect(
+            0, APP_HEIGHT - 11, APP_WIDTH, 12, 8
+        )  # Red line for instructions footer
         pyxel.rect(
             0, APP_HEIGHT - 10, APP_WIDTH, 10, 0
-        )  # Black rectangle for output box
+        )  # Black rectangle for instructions footer
         pyxel.text(2, APP_HEIGHT - 8, INSTRUCTIONS, 8)
 
 
