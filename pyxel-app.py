@@ -63,6 +63,8 @@ INPUT_BOX_HEIGHT = 10
 OUTPUT_BOX_Y = INPUT_BOX_Y + 20
 OUTPUT_BOX_HEIGHT = 180
 
+TITLE_Y = 16
+
 
 def _split_up_long_text(output: str) -> str:
     if len(output) <= CHARACTER_LIMIT:
@@ -192,11 +194,11 @@ class App:
         pyxel.blt(0, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
         pyxel.blt(APP_WIDTH // 2, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
 
-        pyxel.text(161, 25, TITLE, 10, self.wizard)
-        pyxel.text(160, 24, TITLE, 10, self.wizard)
-        pyxel.text(160, 26, TITLE, 10, self.wizard)
-        pyxel.text(159, 25, TITLE, 10, self.wizard)
-        pyxel.text(160, 25, TITLE, 0, self.wizard)
+        pyxel.text(161, TITLE_Y, TITLE, 8, self.wizard)
+        pyxel.text(160, TITLE_Y - 1, TITLE, 8, self.wizard)
+        pyxel.text(160, TITLE_Y + 1, TITLE, 8, self.wizard)
+        pyxel.text(159, TITLE_Y, TITLE, 8, self.wizard)
+        pyxel.text(160, TITLE_Y, TITLE, 10, self.wizard)
 
         # Create input box
         pyxel.rect(
