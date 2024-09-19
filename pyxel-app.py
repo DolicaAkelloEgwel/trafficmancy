@@ -1,11 +1,40 @@
 import pyxel
 
-TESTING = False
+TESTING = True
 
 if TESTING:
 
     def ask_question(arg1, arg2):
-        return "Test"
+        return (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sed consectetur mauris. Aenean nec ex turpis. "
+            "Quisque accumsan ex a enim ultrices, a pretium sem hendrerit. Phasellus facilisis, nunc ut accumsan pulvinar, "
+            "velit mi pellentesque orci, et ullamcorper eros ante sit amet ipsum. Duis et libero pulvinar, eleifend orci vel, "
+            "suscipit nisl. Phasellus faucibus tempor quam vel viverra. Mauris consequat porttitor augue, a ornare nunc commodo "
+            "pellentesque. Interdum et malesuada fames ac ante ipsum primis in faucibus.\n\n"
+            "Nam ut imperdiet dolor. Duis eget tristique sapien, condimentum molestie erat. Phasellus rhoncus accumsan metus. "
+            "Etiam tristique congue semper. Donec ultricies orci ante, laoreet dignissim mauris tincidunt et. In maximus finibus "
+            "dolor sit amet fermentum. Nunc feugiat, orci eget bibendum viverra, est magna rhoncus metus, euismod placerat turpis "
+            "nisi in sapien. Vivamus imperdiet, nisl quis venenatis aliquet, arcu sapien consectetur lorem, eu tempor risus nisi "
+            "sit amet ante. Praesent sagittis finibus ex, euismod volutpat urna tincidunt sed. Praesent quis dignissim nisl. "
+            "Maecenas dapibus ante eros. Donec iaculis velit augue, ut pulvinar lacus consequat et.\n\n"
+            "Aenean a libero elit. Nam fringilla dolor id justo sodales convallis. In dapibus, dolor quis tincidunt euismod, eros "
+            "risus gravida urna, sit amet finibus tortor mauris et nunc. Aenean dolor augue, sodales sit amet volutpat quis, "
+            "fringilla quis est. Integer ante ipsum, semper id ex iaculis, auctor blandit elit. Integer urna tellus, bibendum "
+            "vitae finibus eu, aliquam eu felis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
+            "himenaeos. Nullam laoreet finibus velit, sit amet lacinia massa interdum sit amet. Nam gravida ornare risus, in "
+            "molestie tellus mattis sit amet. Aenean a ante libero. Mauris vulputate augue nec est egestas, vitae imperdiet urna "
+            "tempor.\n\n"
+            "Aliquam neque leo, posuere ac tortor vitae, dictum pellentesque urna. Suspendisse potenti. Fusce faucibus neque vitae "
+            "quam porta elementum. Aliquam placerat libero eu elit vehicula tristique sed at mi. Proin facilisis ante dolor, quis "
+            "commodo leo facilisis id. Fusce varius, orci sit amet accumsan vestibulum, augue ex pharetra est, at sagittis eros "
+            "magna nec nunc. Aliquam laoreet risus nec massa vehicula, sit amet cursus turpis varius. Nullam imperdiet a odio vitae "
+            "vulputate. Vivamus aliquam sed metus sed mattis.\n\n"
+            "Pellentesque laoreet mi at dolor porta, ut aliquet ipsum laoreet. Aenean eleifend nisl eros, eget viverra leo blandit "
+            "sed. Nullam convallis, ligula efficitur viverra maximus, tellus risus posuere dolor, id ultrices est orci dignissim "
+            "libero. Sed sed lectus congue, interdum risus non, euismod augue. Vestibulum in venenatis urna. Integer nec nunc arcu. "
+            "Ut a libero ornare, condimentum ante ac, auctor nisl. Vestibulum rutrum pellentesque eros sed egestas. Nunc vulputate "
+            "velit vitae purus vestibulum, non bibendum lectus aliquam.\n\n"
+        )
 
     def get_traffic_count():
         return None
@@ -27,6 +56,12 @@ CHARACTER_LIMIT = 117
 INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + C (Note - You may have to wait a while, as Trafficmany thinks about your query...)"
 
 TITLE = "Trafficmancy"
+
+INPUT_BOX_Y = 60
+INPUT_BOX_HEIGHT = 10
+
+OUTPUT_BOX_Y = INPUT_BOX_Y + 20
+OUTPUT_BOX_HEIGHT = 180
 
 
 def _split_up_long_text(output: str) -> str:
@@ -165,17 +200,25 @@ class App:
 
         # Create input box
         pyxel.rect(
-            PADDING - 1, 80 - 1, BOX_WIDTH + 2, 12, 8
+            PADDING - 1, INPUT_BOX_Y - 1, BOX_WIDTH + 2, INPUT_BOX_HEIGHT + 2, 8
         )  # Red border for input box
-        pyxel.rect(PADDING, 80, BOX_WIDTH, 10, 0)  # Black rectangle for input
-        pyxel.text(PADDING + 2, 82, self.input_text, 7)  # Display the input text
+        pyxel.rect(
+            PADDING, INPUT_BOX_Y, BOX_WIDTH, INPUT_BOX_HEIGHT, 0
+        )  # Black rectangle for input
+        pyxel.text(
+            PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
+        )  # Display the input text
 
         # Create output box
         pyxel.rect(
-            PADDING - 1, 100 - 1, BOX_WIDTH + 2, 162, 8
+            PADDING - 1, OUTPUT_BOX_Y - 1, BOX_WIDTH + 2, OUTPUT_BOX_HEIGHT + 2, 8
         )  # Red border for output box
-        pyxel.rect(PADDING, 100, BOX_WIDTH, 160, 0)  # Black rectangle for output box
-        pyxel.text(PADDING + 2, 102, self.partial_text, 7)  # Display user output text
+        pyxel.rect(
+            PADDING, OUTPUT_BOX_Y, BOX_WIDTH, OUTPUT_BOX_HEIGHT, 0
+        )  # Black rectangle for output box
+        pyxel.text(
+            PADDING + 2, OUTPUT_BOX_Y + 2, self.partial_text, 7
+        )  # Display user output text
 
         self.partial_text = self.output_text[: self.progress]
 
