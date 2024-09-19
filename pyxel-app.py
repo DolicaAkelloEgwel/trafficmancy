@@ -1,6 +1,6 @@
 import pyxel
 
-TESTING = True
+TESTING = False
 
 if TESTING:
 
@@ -101,76 +101,74 @@ class App:
         self.partial_text = ""
         self.progress = 1
         self.end = 1
-        self.processing_query = False  # Track if typing in input box
         self.count = 0
         self.wizard = pyxel.Font("wizard.bdf")
         pyxel.run(self.update, self.draw)
 
     def update(self):
-        # Handle typing in the input box
-        if not self.processing_query:
-            for i in range(26):
-                if pyxel.btnp(pyxel.KEY_A + i):
-                    if pyxel.btn(
-                        pyxel.KEY_SHIFT
-                    ):  # Check if shift is pressed for uppercase
-                        self.input_text += chr(pyxel.KEY_A + i).upper()
-                    else:
-                        self.input_text += chr(pyxel.KEY_A + i)
 
-            # Handle numbers 0-9
-            for i in range(10):
-                if not pyxel.btn(pyxel.KEY_SHIFT) and pyxel.btnp(pyxel.KEY_0 + i):
-                    self.input_text += chr(pyxel.KEY_0 + i)
+        for i in range(26):
+            if pyxel.btnp(pyxel.KEY_A + i):
+                if pyxel.btn(
+                    pyxel.KEY_SHIFT
+                ):  # Check if shift is pressed for uppercase
+                    self.input_text += chr(pyxel.KEY_A + i).upper()
+                else:
+                    self.input_text += chr(pyxel.KEY_A + i)
 
-            # Handle punctuation symbols using their respective Pyxel key codes
-            if pyxel.btnp(pyxel.KEY_SPACE):
-                self.input_text += " "
-            if pyxel.btnp(pyxel.KEY_SEMICOLON):
-                self.input_text += ";"
-            if pyxel.btnp(pyxel.KEY_MINUS):
-                self.input_text += "-"
-            if pyxel.btnp(pyxel.KEY_EQUALS):
-                self.input_text += "="
-            if pyxel.btnp(pyxel.KEY_BACKSLASH):
-                self.input_text += "\\"
+        # Handle numbers 0-9
+        for i in range(10):
+            if not pyxel.btn(pyxel.KEY_SHIFT) and pyxel.btnp(pyxel.KEY_0 + i):
+                self.input_text += chr(pyxel.KEY_0 + i)
 
-            if not pyxel.btn(pyxel.KEY_SHIFT):
-                if pyxel.btnp(pyxel.KEY_COMMA):
-                    self.input_text += ","
-                if pyxel.btnp(pyxel.KEY_PERIOD):
-                    self.input_text += "."
-                if pyxel.btnp(pyxel.KEY_SLASH):
-                    self.input_text += "/"
+        # Handle punctuation symbols using their respective Pyxel key codes
+        if pyxel.btnp(pyxel.KEY_SPACE):
+            self.input_text += " "
+        if pyxel.btnp(pyxel.KEY_SEMICOLON):
+            self.input_text += ";"
+        if pyxel.btnp(pyxel.KEY_MINUS):
+            self.input_text += "-"
+        if pyxel.btnp(pyxel.KEY_EQUALS):
+            self.input_text += "="
+        if pyxel.btnp(pyxel.KEY_BACKSLASH):
+            self.input_text += "\\"
 
-            # Handle shift-modified symbols for special characters like ?, !, etc.
-            if pyxel.btn(pyxel.KEY_SHIFT):
-                if pyxel.btnp(pyxel.KEY_1):
-                    self.input_text += "!"
-                if pyxel.btnp(pyxel.KEY_2):
-                    self.input_text += "@"
-                if pyxel.btnp(pyxel.KEY_3):
-                    self.input_text += "#"
-                if pyxel.btnp(pyxel.KEY_4):
-                    self.input_text += "$"
-                if pyxel.btnp(pyxel.KEY_5):
-                    self.input_text += "%"
-                if pyxel.btnp(pyxel.KEY_6):
-                    self.input_text += "^"
-                if pyxel.btnp(pyxel.KEY_7):
-                    self.input_text += "&"
-                if pyxel.btnp(pyxel.KEY_8):
-                    self.input_text += "*"
-                if pyxel.btnp(pyxel.KEY_9):
-                    self.input_text += "("
-                if pyxel.btnp(pyxel.KEY_0):
-                    self.input_text += ")"
-                if pyxel.btnp(pyxel.KEY_COMMA):
-                    self.input_text += "<"
-                if pyxel.btnp(pyxel.KEY_PERIOD):
-                    self.input_text += ">"
-                if pyxel.btnp(pyxel.KEY_SLASH):
-                    self.input_text += "?"
+        if not pyxel.btn(pyxel.KEY_SHIFT):
+            if pyxel.btnp(pyxel.KEY_COMMA):
+                self.input_text += ","
+            if pyxel.btnp(pyxel.KEY_PERIOD):
+                self.input_text += "."
+            if pyxel.btnp(pyxel.KEY_SLASH):
+                self.input_text += "/"
+
+        # Handle shift-modified symbols for special characters like ?, !, etc.
+        if pyxel.btn(pyxel.KEY_SHIFT):
+            if pyxel.btnp(pyxel.KEY_1):
+                self.input_text += "!"
+            if pyxel.btnp(pyxel.KEY_2):
+                self.input_text += "@"
+            if pyxel.btnp(pyxel.KEY_3):
+                self.input_text += "#"
+            if pyxel.btnp(pyxel.KEY_4):
+                self.input_text += "$"
+            if pyxel.btnp(pyxel.KEY_5):
+                self.input_text += "%"
+            if pyxel.btnp(pyxel.KEY_6):
+                self.input_text += "^"
+            if pyxel.btnp(pyxel.KEY_7):
+                self.input_text += "&"
+            if pyxel.btnp(pyxel.KEY_8):
+                self.input_text += "*"
+            if pyxel.btnp(pyxel.KEY_9):
+                self.input_text += "("
+            if pyxel.btnp(pyxel.KEY_0):
+                self.input_text += ")"
+            if pyxel.btnp(pyxel.KEY_COMMA):
+                self.input_text += "<"
+            if pyxel.btnp(pyxel.KEY_PERIOD):
+                self.input_text += ">"
+            if pyxel.btnp(pyxel.KEY_SLASH):
+                self.input_text += "?"
 
         # Handle backspace to remove last character
         if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.input_text:
@@ -198,7 +196,7 @@ class App:
         pyxel.text(160, TITLE_Y - 1, TITLE, 8, self.wizard)
         pyxel.text(160, TITLE_Y + 1, TITLE, 8, self.wizard)
         pyxel.text(159, TITLE_Y, TITLE, 8, self.wizard)
-        pyxel.text(160, TITLE_Y, TITLE, 10, self.wizard)
+        pyxel.text(160, TITLE_Y, TITLE, 0, self.wizard)
 
         # Create input box
         pyxel.rect(
