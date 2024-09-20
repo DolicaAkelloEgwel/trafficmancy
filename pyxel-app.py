@@ -70,7 +70,7 @@ def _get_character() -> str:
 
     for i in range(26):
         if pyxel.btnp(pyxel.KEY_A + i):
-            if pyxel.btn(pyxel.KEY_SHIFT):  # Check if shift is pressed for uppercase
+            if pyxel.btn(pyxel.KEY_SHIFT):
                 return chr(pyxel.KEY_A + i).upper()
             else:
                 return chr(pyxel.KEY_A + i)
@@ -78,16 +78,12 @@ def _get_character() -> str:
     # Handle numbers 0-9
     for i in range(10):
         if not pyxel.btn(pyxel.KEY_SHIFT) and pyxel.btnp(pyxel.KEY_0 + i):
-            self.input_text += chr(pyxel.KEY_0 + i)
+            return chr(pyxel.KEY_0 + i)
 
     if pyxel.btnp(pyxel.KEY_SPACE):
         return " "
-    if pyxel.btnp(pyxel.KEY_SEMICOLON):
-        return ";"
     if pyxel.btnp(pyxel.KEY_MINUS):
         return "-"
-    if pyxel.btnp(pyxel.KEY_EQUALS):
-        return "="
     if pyxel.btnp(pyxel.KEY_BACKSLASH):
         return "\\"
 
@@ -98,35 +94,46 @@ def _get_character() -> str:
             return "."
         if pyxel.btnp(pyxel.KEY_SLASH):
             return "/"
+        if pyxel.btnp(pyxel.KEY_EQUALS):
+            return "="
+        if pyxel.btnp(pyxel.KEY_SEMICOLON):
+            return ";"
+        if pyxel.btnp(pyxel.KEY_MINUS):
+            return "-"
 
     # Handle shift-modified symbols for special characters like ?, !, etc.
-    if pyxel.btn(pyxel.KEY_SHIFT):
-        if pyxel.btnp(pyxel.KEY_1):
-            return "!"
-        if pyxel.btnp(pyxel.KEY_2):
-            return "@"
-        if pyxel.btnp(pyxel.KEY_3):
-            return "#"
-        if pyxel.btnp(pyxel.KEY_4):
-            return "$"
-        if pyxel.btnp(pyxel.KEY_5):
-            return "%"
-        if pyxel.btnp(pyxel.KEY_6):
-            return "^"
-        if pyxel.btnp(pyxel.KEY_7):
-            return "&"
-        if pyxel.btnp(pyxel.KEY_8):
-            return "*"
-        if pyxel.btnp(pyxel.KEY_9):
-            return "("
-        if pyxel.btnp(pyxel.KEY_0):
-            return ")"
-        if pyxel.btnp(pyxel.KEY_COMMA):
-            return "<"
-        if pyxel.btnp(pyxel.KEY_PERIOD):
-            return ">"
-        if pyxel.btnp(pyxel.KEY_SLASH):
-            return "?"
+    if pyxel.btnp(pyxel.KEY_1):
+        return "!"
+    if pyxel.btnp(pyxel.KEY_2):
+        return '"'
+    if pyxel.btnp(pyxel.KEY_3):
+        return "£"
+    if pyxel.btnp(pyxel.KEY_4):
+        return "$"
+    if pyxel.btnp(pyxel.KEY_5):
+        return "%"
+    if pyxel.btnp(pyxel.KEY_6):
+        return "^"
+    if pyxel.btnp(pyxel.KEY_7):
+        return "&"
+    if pyxel.btnp(pyxel.KEY_8):
+        return "*"
+    if pyxel.btnp(pyxel.KEY_9):
+        return "("
+    if pyxel.btnp(pyxel.KEY_0):
+        return ")"
+    if pyxel.btnp(pyxel.KEY_COMMA):
+        return "<"
+    if pyxel.btnp(pyxel.KEY_PERIOD):
+        return ">"
+    if pyxel.btnp(pyxel.KEY_SLASH):
+        return "?"
+    if pyxel.btnp(pyxel.KEY_EQUALS):
+        return "+"
+    if pyxel.btnp(pyxel.KEY_SEMICOLON):
+        return ":"
+    if pyxel.btnp(pyxel.KEY_MINUS):
+        return "_"
 
     return ""
 
@@ -172,7 +179,8 @@ class App:
     def update(self):
 
         # Add a character to the input box
-        self.input_text += _get_character()
+        if len(self.input_text) < CHARACTER_LIMIT:
+            self.input_text += _get_character()
 
         # Handle backspace to remove last character
         if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.input_text:
