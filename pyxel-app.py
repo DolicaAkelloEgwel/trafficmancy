@@ -56,7 +56,8 @@ CHARACTER_LIMIT = 117
 INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + c | Toggle Info: Alt + i"
 
 INFO_INPUT = "Look for the syncroniCITY...".center(CHARACTER_LIMIT)
-INFO_OUTPUT = "To do..."
+INFO_OUTPUT = "Trafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never heard about people talking about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian who told me he could tell the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, he stopped liking me when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this code may crash at times, in which case you'll have to ask me to reset the device!"
+
 
 TITLE = "Trafficmancy"
 
@@ -169,6 +170,9 @@ def _split_up_long_text(output: str) -> str:
     )
 
 
+INFO_OUTPUT = _split_up_long_text(INFO_OUTPUT)
+
+
 class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Trafficmancy", quit_key=pyxel.KEY_NONE)
@@ -184,6 +188,7 @@ class App:
 
     def update(self):
 
+        # Toggle between info mode
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_I):
             self.info_mode = not self.info_mode
 
@@ -193,19 +198,24 @@ class App:
             else:
                 self.input_text = ""
                 self.output_text = " "
-
             return
 
+        # Do nothing if we're in info mode
+        if self.info_mode:
+            return
+
+        # Clear the screen
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_C):
             self.input_text = ""
             self.output_text = " "
+            return
 
-        # Add a character to the input box - don't bother if we've passed the limit
+        # Add a character to the input box - don't bother if we've passed the limit (tough if the question is too long)
         if len(self.input_text) < CHARACTER_LIMIT:
             self.input_text += _get_character()
 
         # Handle backspace to remove last character
-        if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.input_text:
+        if pyxel.btnp(pyxel.KEY_BACKSPACE, True, 1) and self.input_text:
             self.input_text = self.input_text[:-1]
 
         # Generate a reply when the user hits Enter
@@ -242,15 +252,6 @@ class App:
             PADDING, INPUT_BOX_Y, BOX_WIDTH, INPUT_BOX_HEIGHT, 0
         )  # Black rectangle for input
 
-        if self.info_mode:
-            pyxel.text(
-                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, pyxel.frame_count % 15
-            )  # Display the input text
-        else:
-            pyxel.text(
-                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
-            )  # Display the input text
-
         # Create output box
         pyxel.rect(
             PADDING - 1, OUTPUT_BOX_Y - 1, BOX_WIDTH + 2, OUTPUT_BOX_HEIGHT + 2, 8
@@ -258,16 +259,30 @@ class App:
         pyxel.rect(
             PADDING, OUTPUT_BOX_Y, BOX_WIDTH, OUTPUT_BOX_HEIGHT, 0
         )  # Black rectangle for output box
-        pyxel.text(
-            PADDING + 2, OUTPUT_BOX_Y + 2, self.partial_text, 7
-        )  # Display user output text
 
-        # Display the partial output text
-        self.partial_text = self.output_text[: self.progress]
+        if self.info_mode:
+            pyxel.text(
+                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, pyxel.frame_count % 15
+            )  # Display the input text
 
-        # Increase the counter for the output text display - unless we're already at the end
-        if self.progress < self.end:
-            self.progress += 1
+            pyxel.text(
+                PADDING + 2, OUTPUT_BOX_Y + 2, self.output_text, 7
+            )  # Display user output text
+        else:
+            pyxel.text(
+                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
+            )  # Display the input text
+
+            pyxel.text(
+                PADDING + 2, OUTPUT_BOX_Y + 2, self.partial_text, 7
+            )  # Display user output text
+
+            # Display the partial output text
+            self.partial_text = self.output_text[: self.progress]
+
+            # Increase the counter for the output text display - unless we're already at the end
+            if self.progress < self.end:
+                self.progress += 1
 
         pyxel.rect(
             0, APP_HEIGHT - 11, APP_WIDTH, 12, 8
