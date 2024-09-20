@@ -53,7 +53,7 @@ KEY_MAP = {}
 
 CHARACTER_LIMIT = 117
 
-INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + C (Note - You may have to wait a while, as Trafficmany thinks about your query...)"
+INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + c | Info: Alt + i (Note - Trafficmany may take a while to think about your query...)"
 
 TITLE = "Trafficmancy"
 
@@ -82,10 +82,6 @@ def _get_character() -> str:
 
     if pyxel.btnp(pyxel.KEY_SPACE):
         return " "
-    if pyxel.btnp(pyxel.KEY_MINUS):
-        return "-"
-    if pyxel.btnp(pyxel.KEY_BACKSLASH):
-        return "\\"
 
     if not pyxel.btn(pyxel.KEY_SHIFT):
         if pyxel.btnp(pyxel.KEY_COMMA):
@@ -100,6 +96,8 @@ def _get_character() -> str:
             return ";"
         if pyxel.btnp(pyxel.KEY_MINUS):
             return "-"
+        if pyxel.btnp(pyxel.KEY_BACKSLASH):
+            return "\\"
 
     # Handle shift-modified symbols for special characters like ?, !, etc.
     if pyxel.btnp(pyxel.KEY_1):
@@ -134,6 +132,8 @@ def _get_character() -> str:
         return ":"
     if pyxel.btnp(pyxel.KEY_MINUS):
         return "_"
+    if pyxel.btnp(pyxel.KEY_BACKSLASH):
+        return "|"
 
     return ""
 
@@ -166,7 +166,7 @@ def _split_up_long_text(output: str) -> str:
 
 class App:
     def __init__(self):
-        pyxel.init(APP_WIDTH, APP_HEIGHT, title="Trafficmancy")
+        pyxel.init(APP_WIDTH, APP_HEIGHT, title="Trafficmancy", quit_key=pyxel.KEY_NONE)
         pyxel.load("background.pyxres")
         self.input_text = ""
         self.output_text = " "
@@ -178,7 +178,7 @@ class App:
 
     def update(self):
 
-        # Add a character to the input box
+        # Add a character to the input box - don't bother if we've passed the limit
         if len(self.input_text) < CHARACTER_LIMIT:
             self.input_text += _get_character()
 
