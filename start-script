@@ -1,5 +1,2 @@
-# Disable Esc key so Pyxel app won't quit - (truly makes vim impossible to exit lol)
-xmodmap -e "keycode 9 = NoSymbol"
-
-# Start up Ollama
+ Start up Ollama
 jetson-containers run --name ollama -p 11434:11434 $(autotag ollama)
