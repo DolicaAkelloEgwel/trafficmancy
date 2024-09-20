@@ -56,7 +56,7 @@ CHARACTER_LIMIT = 117
 INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + c | Toggle Info: Alt + i"
 
 INFO_INPUT = "Look for the syncroniCITY...".center(CHARACTER_LIMIT)
-INFO_OUTPUT = "Trafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never heard about people talking about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian who told me he could tell the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, he stopped liking me when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this code may crash at times, in which case you'll have to ask me to reset the device!"
+INFO_OUTPUT = "INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult the flow of the traffic outside to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never heard about people talking about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian who told me he could tell the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, he stopped liking me when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device."
 
 
 TITLE = "Trafficmancy"
@@ -190,6 +190,10 @@ class App:
 
         # Toggle between info mode
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_I):
+            if self.progress != self.end:
+                # dip if a response is still being displayed
+                return
+
             self.info_mode = not self.info_mode
 
             if self.info_mode:
@@ -198,6 +202,7 @@ class App:
             else:
                 self.input_text = ""
                 self.output_text = " "
+                self.partial_text = ""
             return
 
         # Do nothing if we're in info mode
