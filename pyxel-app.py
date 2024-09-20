@@ -53,7 +53,10 @@ KEY_MAP = {}
 
 CHARACTER_LIMIT = 117
 
-INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + c | Info: Alt + i (Note - Trafficmany may take a while to think about your query...)"
+INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + c | Toggle Info: Alt + i"
+
+INFO_INPUT = "Look for the syncroniCITY...".center(CHARACTER_LIMIT)
+INFO_OUTPUT = "To do..."
 
 TITLE = "Trafficmancy"
 
@@ -68,6 +71,7 @@ TITLE_Y = 16
 
 def _get_character() -> str:
 
+    # Handle the letters of the alphabet
     for i in range(26):
         if pyxel.btnp(pyxel.KEY_A + i):
             if pyxel.btn(pyxel.KEY_SHIFT):
@@ -83,6 +87,7 @@ def _get_character() -> str:
     if pyxel.btnp(pyxel.KEY_SPACE):
         return " "
 
+    # Handle symbols without shfit key
     if not pyxel.btn(pyxel.KEY_SHIFT):
         if pyxel.btnp(pyxel.KEY_COMMA):
             return ","
@@ -173,10 +178,27 @@ class App:
         self.partial_text = ""
         self.progress = 1
         self.end = 1
+        self.info_mode = False
         self.wizard = pyxel.Font("wizard.bdf")
         pyxel.run(self.update, self.draw)
 
     def update(self):
+
+        if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_I):
+            self.info_mode = not self.info_mode
+
+            if self.info_mode:
+                self.input_text = INFO_INPUT
+                self.output_text = INFO_OUTPUT
+            else:
+                self.input_text = ""
+                self.output_text = " "
+
+            return
+
+        if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_C):
+            self.input_text = ""
+            self.output_text = " "
 
         # Add a character to the input box - don't bother if we've passed the limit
         if len(self.input_text) < CHARACTER_LIMIT:
@@ -219,9 +241,15 @@ class App:
         pyxel.rect(
             PADDING, INPUT_BOX_Y, BOX_WIDTH, INPUT_BOX_HEIGHT, 0
         )  # Black rectangle for input
-        pyxel.text(
-            PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
-        )  # Display the input text
+
+        if self.info_mode:
+            pyxel.text(
+                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, pyxel.frame_count % 15
+            )  # Display the input text
+        else:
+            pyxel.text(
+                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
+            )  # Display the input text
 
         # Create output box
         pyxel.rect(
