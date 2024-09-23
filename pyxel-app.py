@@ -57,7 +57,7 @@ INSTRUCTIONS = (
 )
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
-INFO_OUTPUT = "INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult the flow of the traffic outside to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian guy who told me he could receive information about the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device."
+INFO_OUTPUT = "INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult the flow of the traffic outside to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian guy I internet-befriended during Covid who told me he could receive information about the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device :P"
 
 TITLE = "Trafficmancy"
 NEW_LINE = "\n"
@@ -112,6 +112,9 @@ class Page:
         self._text = text
         self._progress = 0
 
+    def to_str(self) -> str:
+        return self._text[: self._progress]
+
     @property
     def progress(self):
         return self._progress
@@ -124,9 +127,6 @@ class Page:
     def progress(self, p: int):
         self._progress = p
 
-    def __str__(self) -> str:
-        return self._text
-
 
 class ResponseText:
 
@@ -134,7 +134,7 @@ class ResponseText:
         squished_text = _split_up_long_text(text, CHARACTER_LIMIT)
 
         self._pages = []
-        self._current_page_idx = 0
+        self._idx = 0
 
         if squished_text.count(NEW_LINE) < 30:
             self._pages.append(Page(squished_text))
@@ -149,26 +149,30 @@ class ResponseText:
                         self._pages.append(Page(squished_text[i + 1 :]))
                         break
 
+    def to_str(self):
+        return self._pages[self._idx].to_str()
+
     @property
     def current_page(self):
-        return self._pages[self._current_page_idx]
+        return self._pages[self._idx]
 
     @property
-    def current_page_idx(self):
-        return self._current_page_idx
+    def idx(self):
+        return self._idx
 
-    @current_page_idx.setter
-    def current_page_idx(self, p):
-        if p >= len(self._pages) or p <= 0:
+    @idx.setter
+    def idx(self, i: int):
+        if i >= len(self._pages) or i < 0:
             return
-        self._current_page_idx = p
+        self._idx = i
 
     @property
     def length(self) -> int:
         return len(self._pages)
 
-    def __str__(self) -> str:
-        return self._pages[self._current_page_idx].__str__()
+    @property
+    def incomplete(self) -> bool:
+        return any([page.incomplete for page in self._pages])
 
 
 BLANK_RESPONSE = ResponseText("")
@@ -259,6 +263,9 @@ class App:
         self.input_text = ""
         self.response = BLANK_RESPONSE
 
+        self._backup_input = ""
+        self._backup_response = None
+
         self.info_mode = False
         self.wizard = pyxel.Font("wizard.bdf")
 
@@ -266,17 +273,17 @@ class App:
 
     def update(self):
 
-        # Toggle between info mode
+        # Toggle info mode
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_I):
-            if self.reponse.incomplete:
-                # dip if a response is still being displayed
-                return
-
             self.info_mode = not self.info_mode
 
-            if not self.info_mode:
-                self.input_text = ""
-                self.response = BLANK_RESPONSE
+            if self.info_mode:
+                self._backup_input = self.input_text
+                self._backup_response = self.response
+
+            else:
+                self.input_text = self._backup_input
+                self.response = self._backup_response
 
             return
 
@@ -290,11 +297,13 @@ class App:
             self.response = BLANK_RESPONSE
             return
 
-        if pyxel.btnp(pyxel.KEY_UP):
-            self.response.current_page_idx -= 1
+        if not self.response.current_page.incomplete:
+            # Only allow scrolling when the message is finished
+            if pyxel.btnp(pyxel.KEY_UP):
+                self.response.idx -= 1
 
-        if pyxel.btnp(pyxel.KEY_DOWN):
-            self.response.current_page_idx += 1
+            if pyxel.btnp(pyxel.KEY_DOWN):
+                self.response.idx += 1
 
         # Add a character to the input box - don't bother if we've passed the limit (tough if the question is too long)
         if len(self.input_text) < CHARACTER_LIMIT:
@@ -358,7 +367,7 @@ class App:
             )  # Display the input text
 
             pyxel.text(
-                PADDING + 2, OUTPUT_BOX_Y + 2, self.response.__str__(), 7
+                PADDING + 2, OUTPUT_BOX_Y + 2, self.response.to_str(), 7
             )  # Display user output text
 
             # Increase the counter for the output text display - unless we're already at the end
