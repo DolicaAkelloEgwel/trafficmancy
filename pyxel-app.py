@@ -4,6 +4,7 @@ TESTING = True
 
 if TESTING:
 
+    # I may not have the camera and ollama set up in testing mode so just spit out some lorem ipsum to make sure everything looks OK
     def ask_question(arg1, arg2):
         return (
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sed consectetur mauris. Aenean nec ex turpis. "
@@ -51,12 +52,15 @@ BOX_WIDTH = APP_WIDTH - PADDING * 2
 
 CHARACTER_LIMIT = 117
 
-INSTRUCTIONS = "Submit Question: Enter | Clear: Alt + c | Toggle Info: Alt + i"
+INSTRUCTIONS = (
+    "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
+)
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
 INFO_OUTPUT = "INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult the flow of the traffic outside to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian guy who told me he could receive information about the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device."
 
 TITLE = "Trafficmancy"
+NEW_LINE = "\n"
 
 INPUT_BOX_Y = 60
 INPUT_BOX_HEIGHT = 10
@@ -65,6 +69,109 @@ OUTPUT_BOX_Y = INPUT_BOX_Y + 20
 OUTPUT_BOX_HEIGHT = 184
 
 TITLE_Y = 16
+
+
+def _split_up_long_text(output: str, character_limit: int) -> str:
+    # when was the last time I used recursion ???
+
+    if len(output) <= character_limit:
+        return output
+
+    next_line = output[:character_limit]
+    remaining_text = output[character_limit:]
+
+    if NEW_LINE in next_line:
+        break_idx = next_line.index(NEW_LINE)
+        return (
+            next_line[:break_idx]
+            + NEW_LINE
+            + _split_up_long_text(
+                next_line[break_idx + 1 :] + remaining_text, character_limit
+            )
+        )
+
+    if remaining_text[0] == " ":
+        return (
+            next_line
+            + NEW_LINE
+            + _split_up_long_text(remaining_text[1:], character_limit)
+        )
+
+    last_space_idx = next_line.rfind(" ")
+    return (
+        next_line[:last_space_idx]
+        + NEW_LINE
+        + _split_up_long_text(
+            next_line[last_space_idx + 1 :] + remaining_text, character_limit
+        )
+    )
+
+
+class Page:
+    def __init__(self, text: str):
+        self._text = text
+        self._progress = 0
+
+    @property
+    def progress(self):
+        return self._progress
+
+    @property
+    def incomplete(self) -> bool:
+        return self._progress < len(self._text)
+
+    @progress.setter
+    def progress(self, p: int):
+        self._progress = p
+
+    def __str__(self) -> str:
+        return self._text
+
+
+class ResponseText:
+
+    def __init__(self, text: str):
+        squished_text = _split_up_long_text(text, CHARACTER_LIMIT)
+
+        self._pages = []
+        self._current_page_idx = 0
+
+        if squished_text.count(NEW_LINE) < 30:
+            self._pages.append(Page(squished_text))
+        else:
+            count = 0
+            for i in range(len(squished_text)):
+                if squished_text[i] == NEW_LINE:
+                    count += 1
+                    if count == 30:
+                        self._pages.append(Page(squished_text[:i]))
+                        # it's not going to be more than two pages of output so we're safe here...
+                        self._pages.append(Page(squished_text[i + 1 :]))
+                        break
+
+    @property
+    def current_page(self):
+        return self._pages[self._current_page_idx]
+
+    @property
+    def current_page_idx(self):
+        return self._current_page_idx
+
+    @current_page_idx.setter
+    def current_page_idx(self, p):
+        if p >= len(self._pages) or p <= 0:
+            return
+        self._current_page_idx = p
+
+    @property
+    def length(self) -> int:
+        return len(self._pages)
+
+    def __str__(self) -> str:
+        return self._pages[self._current_page_idx].__str__()
+
+
+BLANK_RESPONSE = ResponseText("")
 
 
 def _get_character() -> str:
@@ -141,65 +248,36 @@ def _get_character() -> str:
     return ""
 
 
-def _split_up_long_text(output: str) -> str:
-    if len(output) <= CHARACTER_LIMIT:
-        return output
-
-    next_line = output[:CHARACTER_LIMIT]
-    remaining_text = output[CHARACTER_LIMIT:]
-
-    if "\n" in next_line:
-        break_idx = next_line.index("\n")
-        return (
-            next_line[:break_idx]
-            + "\n"
-            + _split_up_long_text(next_line[break_idx + 1 :] + remaining_text)
-        )
-
-    if remaining_text[0] == " ":
-        return next_line + "\n" + _split_up_long_text(remaining_text[1:])
-
-    last_space_idx = next_line.rfind(" ")
-    return (
-        next_line[:last_space_idx]
-        + "\n"
-        + _split_up_long_text(next_line[last_space_idx + 1 :] + remaining_text)
-    )
-
-
-INFO_OUTPUT = _split_up_long_text(INFO_OUTPUT)
+INFO_OUTPUT = _split_up_long_text(INFO_OUTPUT, CHARACTER_LIMIT)
 
 
 class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title=TITLE, quit_key=pyxel.KEY_NONE)
         pyxel.load("background.pyxres")
+
         self.input_text = ""
-        self.output_text = " "
-        self.partial_text = ""
-        self.progress = 1
-        self.end = 1
+        self.response = BLANK_RESPONSE
+
         self.info_mode = False
         self.wizard = pyxel.Font("wizard.bdf")
+
         pyxel.run(self.update, self.draw)
 
     def update(self):
 
         # Toggle between info mode
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_I):
-            if self.progress != self.end:
+            if self.reponse.incomplete:
                 # dip if a response is still being displayed
                 return
 
             self.info_mode = not self.info_mode
 
-            if self.info_mode:
-                self.input_text = INFO_INPUT
-                self.output_text = INFO_OUTPUT
-            else:
+            if not self.info_mode:
                 self.input_text = ""
-                self.output_text = " "
-                self.partial_text = ""
+                self.response = BLANK_RESPONSE
+
             return
 
         # Do nothing if we're in info mode
@@ -209,8 +287,14 @@ class App:
         # Clear the screen
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_C):
             self.input_text = ""
-            self.output_text = " "
+            self.response = BLANK_RESPONSE
             return
+
+        if pyxel.btnp(pyxel.KEY_UP):
+            self.response.current_page_idx -= 1
+
+        if pyxel.btnp(pyxel.KEY_DOWN):
+            self.response.current_page_idx += 1
 
         # Add a character to the input box - don't bother if we've passed the limit (tough if the question is too long)
         if len(self.input_text) < CHARACTER_LIMIT:
@@ -223,17 +307,15 @@ class App:
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
             traffic_count = get_traffic_count()
-            self.output_text = ask_question(self.input_text, traffic_count)
-            self.output_text = _split_up_long_text(self.output_text)
-            print(self.output_text)
-            self.end = len(self.output_text)
-            self.progress = 1
+            output_text = ask_question(self.input_text, traffic_count)
+            self.response = ResponseText(output_text)
+            print(output_text)
 
     def draw(self):
         # Clear the screen
         pyxel.cls(7)
 
-        # Fill with the background image
+        # Fill with the background image (funky bus seat pattern)
         pyxel.blt(0, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
         pyxel.blt(APP_WIDTH // 2, 0, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
         pyxel.blt(0, APP_HEIGHT // 2, 0, 0, 0, APP_WIDTH, APP_HEIGHT)
@@ -264,27 +346,24 @@ class App:
 
         if self.info_mode:
             pyxel.text(
-                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, pyxel.frame_count % 15
-            )  # Display the input text
+                PADDING + 2, INPUT_BOX_Y + 2, INFO_INPUT, pyxel.frame_count % 15
+            )  # This is just fun
 
             pyxel.text(
-                PADDING + 2, OUTPUT_BOX_Y + 2, self.output_text, 7
-            )  # Display user output text
+                PADDING + 2, OUTPUT_BOX_Y + 2, INFO_OUTPUT, 7
+            )  # Info about my project
         else:
             pyxel.text(
                 PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
             )  # Display the input text
 
             pyxel.text(
-                PADDING + 2, OUTPUT_BOX_Y + 2, self.partial_text, 7
+                PADDING + 2, OUTPUT_BOX_Y + 2, self.response.__str__(), 7
             )  # Display user output text
 
-            # Display the partial output text
-            self.partial_text = self.output_text[: self.progress]
-
             # Increase the counter for the output text display - unless we're already at the end
-            if self.progress < self.end:
-                self.progress += 1
+            if self.response.current_page.incomplete:
+                self.response.current_page.progress += 1
 
         pyxel.rect(
             0, APP_HEIGHT - 11, APP_WIDTH, 12, 8
@@ -292,6 +371,8 @@ class App:
         pyxel.rect(
             0, APP_HEIGHT - 10, APP_WIDTH, 10, 0
         )  # Black rectangle for instructions footer
+
+        # Commands text at the bottom
         pyxel.text(2, APP_HEIGHT - 8, INSTRUCTIONS, 8)
 
 
