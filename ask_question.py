@@ -1,4 +1,4 @@
-import requests
+import ollama
 
 TRAFFICMANCY_INITIAL_PROMPT = (
     "You are Trafficmancy. You harness the elements of the urban environment to provide answers to life's burning questions. "
@@ -21,13 +21,7 @@ TRAFFICMANCY_INITIAL_PROMPT = (
 # API URL pointing to localhost since the container is using host networking
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
-# Example request data
-data = {
-    "model": "dolphin-phi",
-    "prompt": "",
-    "stream": False,
-}
-
+MODEL = "dolphin-phi"
 
 def ask_question(query: str, counts: dict[str, int]) -> str:
     query = f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians, {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed. Based on this snapshot, analyse the observed elements and provide a symbolic interpretation that answers the following query: {query}'
