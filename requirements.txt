@@ -1,1 +1,6 @@
 pyxel
+requests
+blobconverter
+opencv-python
+numpy
+depthai
