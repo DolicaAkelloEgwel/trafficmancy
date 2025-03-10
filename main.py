@@ -310,8 +310,9 @@ class App:
             self.input_text += _get_character()
 
         # Handle backspace to remove last character
-        if pyxel.btnp(pyxel.KEY_BACKSPACE, True, 1) and self.input_text:
-            self.input_text = self.input_text[:-1]
+        if self.input_text:
+            if pyxel.btnp(pyxel.KEY_BACKSPACE, False):
+                self.input_text = self.input_text[:-1]
 
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
