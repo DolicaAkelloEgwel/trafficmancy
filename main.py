@@ -1,7 +1,7 @@
 import ollama
 import pyxel
 
-LOREM_IPSUM = True
+LOREM_IPSUM = False
 DEPTHAI = True
 
 if LOREM_IPSUM:
@@ -43,7 +43,7 @@ if LOREM_IPSUM:
         return None
 
 elif DEPTHAI:
-    from traffic_counter import get_traffic_count
+    from stereo_camera import get_traffic_count
 else:
     from webcam_feed import get_traffic_count
 
@@ -350,23 +350,14 @@ class App:
 
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
-            # traffic_count = get_traffic_count()
-            traffic_count = {
-                "motorbike": 5,
-                "car": 2,
-                "bus": 1,
-                "person": 8,
-                "bicycle": 4,
-            }
+            traffic_count = get_traffic_count()
             self.stream = ask_question(self.input_text, traffic_count)
-
         try:
             if self.stream is not None:
                 chunk = next(self.stream)
                 word = chunk["message"]["content"]
                 self.ollama_output += word
                 self.response = ResponseText(self.ollama_output)
-                print(self.response)
         except StopIteration:
             self.ollama_output = ""
             self.stream = None
