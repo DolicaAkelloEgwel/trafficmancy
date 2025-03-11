@@ -1,5 +1,5 @@
-import pyxel
 import ollama
+import pyxel
 
 LOREM_IPSUM = True
 DEPTHAI = True

@@ -1,9 +1,11 @@
+import time
+
 import blobconverter
 import cv2
-import numpy as np
-import time
 import depthai as dai
-from tracking import TrackableObject, ROI_POSITION, LABEL_MAP, TRACKING_LABELS
+import numpy as np
+
+from tracking import LABEL_MAP, ROI_POSITION, TRACKING_LABELS, TrackableObject
 
 SHOW = False
 TRAFFIC_COUNT = {label: 0 for label in TRACKING_LABELS}

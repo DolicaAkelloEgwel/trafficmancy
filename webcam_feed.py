@@ -1,7 +1,9 @@
+import time
+
 import blobconverter
 import cv2
 import numpy as np
-import time
+
 from tracking import TrackableObject
 
 
