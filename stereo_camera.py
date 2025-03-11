@@ -3,42 +3,11 @@ import cv2
 import numpy as np
 import time
 import depthai as dai
+from tracking import TrackableObject, ROI_POSITION, LABEL_MAP, TRACKING_LABELS
 
-ROI_POSITION = 0.5
 SHOW = False
-
-labelMap = [
-    "background",
-    "aeroplane",
-    "bicycle",
-    "bird",
-    "boat",
-    "bottle",
-    "bus",
-    "car",
-    "cat",
-    "chair",
-    "cow",
-    "diningtable",
-    "dog",
-    "horse",
-    "motorbike",
-    "person",
-    "pottedplant",
-    "sheep",
-    "sofa",
-    "train",
-    "tvmonitor",
-]
-
-TRACKING_LABELS = ["motorbike", "car", "bus", "person", "bicycle"]
 TRAFFIC_COUNT = {label: 0 for label in TRACKING_LABELS}
-TRACKING_IDX = [labelMap.index(label) for label in TRACKING_LABELS]
-
-
-def label_to_text(idx: int) -> str:
-    return labelMap[idx]
-
+TRACKING_IDX = [LABEL_MAP.index(label) for label in TRACKING_LABELS]
 
 model = blobconverter.from_zoo(name="mobilenet-ssd", shaves=6)
 
@@ -87,19 +56,6 @@ nn.out.link(objectTracker.inputDetections)
 trackerOut = pipeline.create(dai.node.XLinkOut)
 trackerOut.setStreamName("tracklets")
 objectTracker.out.link(trackerOut.input)
-
-
-# from https://www.pyimagesearch.com/2018/08/13/opencv-people-counter/
-class TrackableObject:
-    def __init__(self, objectID, centroid):
-        # store the object ID, then initialize a list of centroids
-        # using the current centroid
-        self.objectID = objectID
-        self.centroids = [centroid]
-
-        # initialize a boolean used to indicate if the object has
-        # already been counted or not
-        self.counted = False
 
 
 def get_traffic_count():
