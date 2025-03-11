@@ -2,6 +2,7 @@ import pyxel
 import ollama
 
 LOREM_IPSUM = True
+DEPTHAI = True
 
 if LOREM_IPSUM:
 
@@ -41,8 +42,10 @@ if LOREM_IPSUM:
     def get_traffic_count():
         return None
 
-else:
+elif DEPTHAI:
     from traffic_counter import get_traffic_count
+else:
+    from webcam_feed import get_traffic_count
 
 APP_WIDTH = 256 * 2
 APP_HEIGHT = 144 * 2
