@@ -5,7 +5,13 @@ import cv2
 import depthai as dai
 import numpy as np
 
-from tracking import LABEL_MAP, ROI_POSITION, TRACKING_LABELS, TrackableObject
+from tracking import (
+    LABEL_MAP,
+    ROI_POSITION,
+    TRACKING_LABELS,
+    TrackableObject,
+    label_to_text,
+)
 
 SHOW = False
 TRAFFIC_COUNT = {label: 0 for label in TRACKING_LABELS}
