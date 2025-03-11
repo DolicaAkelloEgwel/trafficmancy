@@ -42,7 +42,8 @@ if LOREM_IPSUM:
     def get_traffic_count():
         return None
 
-elif DEPTHAI:
+
+if DEPTHAI:
     from stereo_camera import get_traffic_count
 else:
     from webcam_feed import get_traffic_count
