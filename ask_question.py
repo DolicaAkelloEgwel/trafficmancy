@@ -23,6 +23,7 @@ OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
 MODEL = "dolphin-phi"
 
+
 def ask_question(query: str, counts: dict[str, int]) -> str:
     query = f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians, {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed. Based on this snapshot, analyse the observed elements and provide a symbolic interpretation that answers the following query: {query}'
     data["prompt"] = query
