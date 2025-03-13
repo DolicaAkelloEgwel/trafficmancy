@@ -1,7 +1,7 @@
 import subprocess
 
 # Live stream URL
-YOUTUBE_URL = "https://www.youtube.com/watch?v=jzgnL2FkrXc"
+YOUTUBE_URL = "https://www.youtube.com/watch?v=up3rJmxI1Fo"
 
 # Output filename
 OUTPUT_FILE = "latest.mp4"
@@ -20,3 +20,5 @@ command = [
 def download_video():
     subprocess.run(command)
     print(f"Downloaded latest 10s clip: {OUTPUT_FILE}")
+
+download_video()
