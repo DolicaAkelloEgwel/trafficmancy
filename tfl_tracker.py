@@ -11,4 +11,6 @@ token = ApiToken(app_id, app_key)
 
 client = Client(token)
 print(client.get_line_meta_modes())
-print(client.get_lines(line_id="tram"))
+
+for line in client.get_lines(line_id="tram"):
+    print(line)
