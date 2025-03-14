@@ -2,7 +2,7 @@ import ollama
 import pyxel
 
 LOREM_IPSUM = False
-DEPTHAI = True
+DEPTHAI = False
 
 if LOREM_IPSUM:
 
