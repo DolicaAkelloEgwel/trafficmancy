@@ -20,3 +20,6 @@ for naptan in STRATFORD_NAPTANS:
 line = tflwrapper.line(app_key)
 
 print(line.getTimetableFromStation(_line = "central", NaPTANID=STRATFORD_NAPTANS[0], direction="outbound"))
+
+def get_tfl_data():
+    pass
