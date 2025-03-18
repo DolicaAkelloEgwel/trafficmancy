@@ -1,52 +1,114 @@
 import ollama
 import pyxel
 
-LOREM_IPSUM = False
-DEPTHAI = True
+LOREM_IPSUM = True
+DEPTHAI = False
 
 if LOREM_IPSUM:
 
+    WHAT_IS_BEING_USED = "nothing"
     # I may not have the camera and ollama set up in testing mode so just spit out some lorem ipsum to make sure everything looks OK
-    def ask_question(arg1, arg2):
-        return (
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sed consectetur mauris. Aenean nec ex turpis. "
-            "Quisque accumsan ex a enim ultrices, a pretium sem hendrerit. Phasellus facilisis, nunc ut accumsan pulvinar, "
-            "velit mi pellentesque orci, et ullamcorper eros ante sit amet ipsum. Duis et libero pulvinar, eleifend orci vel, "
-            "suscipit nisl. Phasellus faucibus tempor quam vel viverra. Mauris consequat porttitor augue, a ornare nunc commodo "
-            "pellentesque. Interdum et malesuada fames ac ante ipsum primis in faucibus.\n\n"
-            "Nam ut imperdiet dolor. Duis eget tristique sapien, condimentum molestie erat. Phasellus rhoncus accumsan metus. "
-            "Etiam tristique congue semper. Donec ultricies orci ante, laoreet dignissim mauris tincidunt et. In maximus finibus "
-            "dolor sit amet fermentum. Nunc feugiat, orci eget bibendum viverra, est magna rhoncus metus, euismod placerat turpis "
-            "nisi in sapien. Vivamus imperdiet, nisl quis venenatis aliquet, arcu sapien consectetur lorem, eu tempor risus nisi "
-            "sit amet ante. Praesent sagittis finibus ex, euismod volutpat urna tincidunt sed. Praesent quis dignissim nisl. "
-            "Maecenas dapibus ante eros. Donec iaculis velit augue, ut pulvinar lacus consequat et.\n\n"
-            "Aenean a libero elit. Nam fringilla dolor id justo sodales convallis. In dapibus, dolor quis tincidunt euismod, eros "
-            "risus gravida urna, sit amet finibus tortor mauris et nunc. Aenean dolor augue, sodales sit amet volutpat quis, "
-            "fringilla quis est. Integer ante ipsum, semper id ex iaculis, auctor blandit elit. Integer urna tellus, bibendum "
-            "vitae finibus eu, aliquam eu felis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
-            "himenaeos. Nullam laoreet finibus velit, sit amet lacinia massa interdum sit amet. Nam gravida ornare risus, in "
-            "molestie tellus mattis sit amet. Aenean a ante libero. Mauris vulputate augue nec est egestas, vitae imperdiet urna "
-            "tempor.\n\n"
-            "Aliquam neque leo, posuere ac tortor vitae, dictum pellentesque urna. Suspendisse potenti. Fusce faucibus neque vitae "
-            "quam porta elementum. Aliquam placerat libero eu elit vehicula tristique sed at mi. Proin facilisis ante dolor, quis "
-            "commodo leo facilisis id. Fusce varius, orci sit amet accumsan vestibulum, augue ex pharetra est, at sagittis eros "
-            "magna nec nunc. Aliquam laoreet risus nec massa vehicula, sit amet cursus turpis varius. Nullam imperdiet a odio vitae "
-            "vulputate. Vivamus aliquam sed metus sed mattis.\n\n"
-            "Pellentesque laoreet mi at dolor porta, ut aliquet ipsum laoreet. Aenean eleifend nisl eros, eget viverra leo blandit "
-            "sed. Nullam convallis, ligula efficitur viverra maximus, tellus risus posuere dolor, id ultrices est orci dignissim "
-            "libero. Sed sed lectus congue, interdum risus non, euismod augue. Vestibulum in venenatis urna. Integer nec nunc arcu. "
-            "Ut a libero ornare, condimentum ante ac, auctor nisl. Vestibulum rutrum pellentesque eros sed egestas. Nunc vulputate "
-            "velit vitae purus vestibulum, non bibendum lectus aliquam.\n\n"
-        )
+    dummy_reponse = (
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sed consectetur mauris. Aenean nec ex turpis. "
+        "Quisque accumsan ex a enim ultrices, a pretium sem hendrerit. Phasellus facilisis, nunc ut accumsan pulvinar, "
+        "velit mi pellentesque orci, et ullamcorper eros ante sit amet ipsum. Duis et libero pulvinar, eleifend orci vel, "
+        "suscipit nisl. Phasellus faucibus tempor quam vel viverra. Mauris consequat porttitor augue, a ornare nunc commodo "
+        "pellentesque. Interdum et malesuada fames ac ante ipsum primis in faucibus.\n\n"
+        "Nam ut imperdiet dolor. Duis eget tristique sapien, condimentum molestie erat. Phasellus rhoncus accumsan metus. "
+        "Etiam tristique congue semper. Donec ultricies orci ante, laoreet dignissim mauris tincidunt et. In maximus finibus "
+        "dolor sit amet fermentum. Nunc feugiat, orci eget bibendum viverra, est magna rhoncus metus, euismod placerat turpis "
+        "nisi in sapien. Vivamus imperdiet, nisl quis venenatis aliquet, arcu sapien consectetur lorem, eu tempor risus nisi "
+        "sit amet ante. Praesent sagittis finibus ex, euismod volutpat urna tincidunt sed. Praesent quis dignissim nisl. "
+        "Maecenas dapibus ante eros. Donec iaculis velit augue, ut pulvinar lacus consequat et.\n\n"
+        "Aenean a libero elit. Nam fringilla dolor id justo sodales convallis. In dapibus, dolor quis tincidunt euismod, eros "
+        "risus gravida urna, sit amet finibus tortor mauris et nunc. Aenean dolor augue, sodales sit amet volutpat quis, "
+        "fringilla quis est. Integer ante ipsum, semper id ex iaculis, auctor blandit elit. Integer urna tellus, bibendum "
+        "vitae finibus eu, aliquam eu felis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
+        "himenaeos. Nullam laoreet finibus velit, sit amet lacinia massa interdum sit amet. Nam gravida ornare risus, in "
+        "molestie tellus mattis sit amet. Aenean a ante libero. Mauris vulputate augue nec est egestas, vitae imperdiet urna "
+        "tempor.\n\n"
+        "Aliquam neque leo, posuere ac tortor vitae, dictum pellentesque urna. Suspendisse potenti. Fusce faucibus neque vitae "
+        "quam porta elementum. Aliquam placerat libero eu elit vehicula tristique sed at mi. Proin facilisis ante dolor, quis "
+        "commodo leo facilisis id. Fusce varius, orci sit amet accumsan vestibulum, augue ex pharetra est, at sagittis eros "
+        "magna nec nunc. Aliquam laoreet risus nec massa vehicula, sit amet cursus turpis varius. Nullam imperdiet a odio vitae "
+        "vulputate. Vivamus aliquam sed metus sed mattis.\n\n"
+        "Pellentesque laoreet mi at dolor porta, ut aliquet ipsum laoreet. Aenean eleifend nisl eros, eget viverra leo blandit "
+        "sed. Nullam convallis, ligula efficitur viverra maximus, tellus risus posuere dolor, id ultrices est orci dignissim "
+        "libero. Sed sed lectus congue, interdum risus non, euismod augue. Vestibulum in venenatis urna. Integer nec nunc arcu. "
+        "Ut a libero ornare, condimentum ante ac, auctor nisl. Vestibulum rutrum pellentesque eros sed egestas. Nunc vulputate "
+        "velit vitae purus vestibulum, non bibendum lectus aliquam.\n\n"
+    )
+    dummy_reponse = [
+        {"message": {"content": word + " "}} for word in dummy_reponse.split(" ")
+    ]
 
-    def get_traffic_count():
-        return None
+    def ask_question(query: str):
+        return iter(dummy_reponse)
 
-
-if DEPTHAI:
+elif DEPTHAI:
     from stereo_camera import get_traffic_count
+
+    WHAT_IS_BEING_USED = "the flow of the traffic outside"
+    TRAFFICMANCY_INITIAL_PROMPT = (
+        "You are Trafficmancy. You harness the elements of the urban environment to provide answers to life's burning questions. "
+        "By analyzing the number of cars, buses, motorbikes, cyclists, and pedestrians that moved during a 10-second observation of a nearby street, "
+        "you interpret the scene to deliver guidance. Here's how you work:\n\n"
+        "1. Cars: Represent stability and progress. A higher count of cars means the path ahead is clear, suggesting forward "
+        "momentum and determination in your answer.\n\n"
+        "2. Buses: Symbolize community and collective effort. When buses are prevalent, they indicate that collaboration, "
+        "shared goals, or considering the bigger picture will be crucial in your decision-making.\n\n"
+        "3. Motorbikes: Embody independence and speed. A higher presence of motorbikes suggests that quick thinking, bold actions, "
+        "or an individual approach might be the best way forward.\n\n"
+        "4. Cyclists: Symbolize agility and adaptability. When cyclists are in abundance, you advise flexibility and creative thinking "
+        "as the keys to success.\n\n"
+        "5. Pedestrians: Embody patience and human connection. More pedestrians indicate that collaboration or a thoughtful pause may be "
+        "necessary for finding your answer.\n\n"
+        "You use this urban scene to provide nuanced and insightful responses, blending the dynamics of the street with the questions people ask. "
+        "Whether it's a clear 'yes,' a thoughtful 'no,' or something in between, you guide the way based on the snapshot of the city in that moment. Please make your answers sound very woo-woo and mystical."
+    )
+
+    def ask_question(query: str):
+        counts = get_traffic_count()
+        query = f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians, {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed. Based on this snapshot, analyse the observed elements and provide a symbolic interpretation that answers the following query: {query}'
+        stream = ollama.chat(
+            model=MODEL,
+            messages=[{"role": "user", "content": query}],
+            stream=True,
+        )
+        return stream
+
 else:
-    from webcam_feed import get_traffic_count
+    from tfl_wrapper import get_tfl_data
+
+    WHAT_IS_BEING_USED = "live TFL data"
+    TRAFFICMANCY_INITIAL_PROMPT = (
+        "You are Trafficmancy. You harness live Transport for London data provide answers to life's burning questions. "
+        "By analyzing the number of cars, buses, motorbikes, cyclists, and pedestrians that moved during a 10-second observation of a nearby street, "
+        "you interpret the scene to deliver guidance. Here's how you work:\n\n"
+        "1. Cars: Represent stability and progress. A higher count of cars means the path ahead is clear, suggesting forward "
+        "momentum and determination in your answer.\n\n"
+        "2. Buses: Symbolize community and collective effort. When buses are prevalent, they indicate that collaboration, "
+        "shared goals, or considering the bigger picture will be crucial in your decision-making.\n\n"
+        "3. Motorbikes: Embody independence and speed. A higher presence of motorbikes suggests that quick thinking, bold actions, "
+        "or an individual approach might be the best way forward.\n\n"
+        "4. Cyclists: Symbolize agility and adaptability. When cyclists are in abundance, you advise flexibility and creative thinking "
+        "as the keys to success.\n\n"
+        "5. Pedestrians: Embody patience and human connection. More pedestrians indicate that collaboration or a thoughtful pause may be "
+        "necessary for finding your answer.\n\n"
+        "You use this urban scene to provide nuanced and insightful responses, blending the dynamics of the street with the questions people ask. "
+        "Whether it's a clear 'yes,' a thoughtful 'no,' or something in between, you guide the way based on the snapshot of the city in that moment. Please make your answers sound very woo-woo and mystical."
+    )
+
+    def ask_question(query: str):
+        counts = get_tfl_data()
+        query = ""
+        stream = ollama.chat(
+            model=MODEL,
+            messages=[{"role": "user", "content": query}],
+            stream=True,
+        )
+        return stream
+
 
 APP_WIDTH = 256 * 2
 APP_HEIGHT = 144 * 2
@@ -61,7 +123,7 @@ INSTRUCTIONS = (
 )
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
-INFO_OUTPUT = "INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult the flow of the traffic outside to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian guy I internet-befriended during Covid who told me he could receive information about the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device :P"
+INFO_OUTPUT = f"INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult {WHAT_IS_BEING_USED} to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian guy I internet-befriended during Covid who told me he could receive information about the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device :P"
 
 TITLE = "Trafficmancy"
 NEW_LINE = "\n"
@@ -74,34 +136,7 @@ OUTPUT_BOX_HEIGHT = 184
 
 TITLE_Y = 16
 
-TRAFFICMANCY_INITIAL_PROMPT = (
-    "You are Trafficmancy. You harness the elements of the urban environment to provide answers to life's burning questions. "
-    "By analyzing the number of cars, buses, motorbikes, cyclists, and pedestrians that moved during a 10-second observation of a nearby street, "
-    "you interpret the scene to deliver guidance. Here's how you work:\n\n"
-    "1. Cars: Represent stability and progress. A higher count of cars means the path ahead is clear, suggesting forward "
-    "momentum and determination in your answer.\n\n"
-    "2. Buses: Symbolize community and collective effort. When buses are prevalent, they indicate that collaboration, "
-    "shared goals, or considering the bigger picture will be crucial in your decision-making.\n\n"
-    "3. Motorbikes: Embody independence and speed. A higher presence of motorbikes suggests that quick thinking, bold actions, "
-    "or an individual approach might be the best way forward.\n\n"
-    "4. Cyclists: Symbolize agility and adaptability. When cyclists are in abundance, you advise flexibility and creative thinking "
-    "as the keys to success.\n\n"
-    "5. Pedestrians: Embody patience and human connection. More pedestrians indicate that collaboration or a thoughtful pause may be "
-    "necessary for finding your answer.\n\n"
-    "You use this urban scene to provide nuanced and insightful responses, blending the dynamics of the street with the questions people ask. "
-    "Whether it's a clear 'yes,' a thoughtful 'no,' or something in between, you guide the way based on the snapshot of the city in that moment. Please make your answers sound very woo-woo and mystical."
-)
 MODEL = "dolphin-phi"
-
-
-def ask_question(query: str, counts: dict[str, int]):
-    query = f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians, {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed. Based on this snapshot, analyse the observed elements and provide a symbolic interpretation that answers the following query: {query}'
-    stream = ollama.chat(
-        model=MODEL,
-        messages=[{"role": "user", "content": query}],
-        stream=True,
-    )
-    return stream
 
 
 def _split_up_long_text(output: str, character_limit: int) -> str:
@@ -351,13 +386,13 @@ class App:
 
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
-            traffic_count = get_traffic_count()
-            self.stream = ask_question(self.input_text, traffic_count)
+            self.stream = ask_question(self.input_text)
         try:
             if self.stream is not None:
                 chunk = next(self.stream)
                 word = chunk["message"]["content"]
                 self.ollama_output += word
+                print(self.ollama_output)
                 self.response = ResponseText(self.ollama_output)
         except StopIteration:
             self.ollama_output = ""
