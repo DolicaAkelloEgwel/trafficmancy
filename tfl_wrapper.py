@@ -10,26 +10,21 @@ STRATFORD_NAPTANS = [
     "9400ZZLUSTD6",
 ]
 STRATFORD_BIKE_POINT_ID = "BikePoints_790"
+STRATFORD_LINES = ["elizabeth-line", "dlr", "tube"]
+STATUS_NAMES = ["elizabeth", "dlr", "central", "jubilee"]
 
 with open("app.key", "r") as f:
     app_key = f.readline()
 
-bike_point = tflwrapper.bikePoint(app_key)
-
-crowding = tflwrapper.crowding(app_key)
-
-for naptan in STRATFORD_NAPTANS:
-    for crowd in crowding.getAllByNaptan(naptan):
-        print(crowd)
-
 line = tflwrapper.line(app_key)
 
-for naptan in STRATFORD_NAPTANS:
-    print(
-        line.getTimetableFromStation(
-            _line="central", NaPTANID=naptan, direction="outbound"
-        )
-    )
+statuses = line.getStatusByID(STRATFORD_LINES + ["tube"], True)
+status_info = ""
+for status in statuses:
+    if status["id"] in STATUS_NAMES:
+        status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
+
+status_info = status_info[1:]
 
 
 def get_tfl_data():
@@ -42,5 +37,14 @@ def get_tfl_data():
     data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0][
         "forecastSummary"
     ]
+
+    line = tflwrapper.line(app_key)
+    statuses = line.getStatusByID(STRATFORD_LINES, True)
+    status_info = ""
+    for status in statuses:
+        if status["id"] in STATUS_NAMES:
+            status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
+
+    data["statford-line-data"] = status_info[1:]
 
     return data
