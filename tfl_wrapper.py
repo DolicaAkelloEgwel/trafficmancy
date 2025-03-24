@@ -4,9 +4,11 @@ STRATFORD_BIKE_POINT_ID = "BikePoints_790"
 STRATFORD_LINES = ["elizabeth-line", "dlr", "tube"]
 STATUS_NAMES = ["elizabeth", "dlr", "central", "mildmay", "jubilee"]
 STRATFORD_NAPTANS = {name: None for name in STATUS_NAMES}
+DEST_NAPTANS = {line_name: [] for line_name in STATUS_NAMES}
 
 
 def _is_stratford_tube_station(name: str) -> bool:
+    """ """
     return (
         "Stratford" in name
         and "High Street" not in name
@@ -19,25 +21,56 @@ with open("app.key", "r") as f:
 
 line = tflwrapper.line(app_key)
 
-# Get the Naptan IDs for Stratford Station
-for name in STATUS_NAMES:
-    stop_points = line.getAllStopPoints(name)
+
+def _find_station_naptan_on_line(line_name: str, station_name: str):
+    """ """
+    stop_points = line.getAllStopPoints(line_name)
+    naptans = []
     for stop_point in stop_points:
-        if _is_stratford_tube_station(stop_point["commonName"]):
-            STRATFORD_NAPTANS[name] = stop_point["naptanId"]
+        if station_name in stop_point["commonName"]:
+            naptans.append((station_name, stop_point["naptanId"]))
+    return naptans
 
 
-def _get_arrival_with_naptan(line_name: str, naptan: str):
-    if line_name in ["mildmay", "jubilee"]:
-        return line.getArrivalsByNaptan(
-            [line_name], STRATFORD_NAPTANS[line_name], STRATFORD_NAPTANS[line_name]
-        )
-    else:
-        return []
+# Get the Naptan IDs for Stratford Station
+for line_name in STATUS_NAMES:
+    naptans = _find_station_naptan_on_line(line_name, "Stratford")
+    naptans = list(
+        filter(lambda naptan: _is_stratford_tube_station(naptan[0]), naptans)
+    )[0]
+    STRATFORD_NAPTANS[line_name] = naptans[1]
 
+DEST_NAPTANS["mildmay"].append(STRATFORD_NAPTANS["mildmay"])
+DEST_NAPTANS["jubilee"].append(STRATFORD_NAPTANS["jubilee"])
 
-for line_name in STRATFORD_NAPTANS:
-    print(_get_arrival_with_naptan(line_name, STRATFORD_NAPTANS[line_name])[:5])
+# Get the Naptan IDs for Central line stops around Stratford
+DEST_NAPTANS["central"] = [
+    _find_station_naptan_on_line("central", "Ealing Broadway")[0][1],
+    _find_station_naptan_on_line("central", "West Ruislip")[0][1],
+    _find_station_naptan_on_line("central", "Grange Hill")[0][1],
+    _find_station_naptan_on_line("central", "Hainault")[0][1],
+    _find_station_naptan_on_line("central", "Epping")[0][1],
+]
+DEST_NAPTANS["elizabeth"] = [
+    _find_station_naptan_on_line("elizabeth", "Paddington")[0][1],
+    _find_station_naptan_on_line("elizabeth", "Shenfield")[0][1],
+    _find_station_naptan_on_line("elizabeth", "Heathrow Terminal 5")[0][1],
+    _find_station_naptan_on_line("elizabeth", "Liverpool Street")[0][1],
+    _find_station_naptan_on_line("elizabeth", "Heathrow Terminal 4")[0][1],
+]
+DEST_NAPTANS["dlr"] = [
+    _find_station_naptan_on_line("dlr", "Lewisham")[0][1],
+    _find_station_naptan_on_line("dlr", "Stratford International")[0][1],
+    _find_station_naptan_on_line("dlr", "Woolwich Arsenal")[0][1],
+    _find_station_naptan_on_line("dlr", "Canary Wharf")[0][1],
+]
+
+for line_name in DEST_NAPTANS:
+    for dest_naptan in DEST_NAPTANS[line_name]:
+        arrivals = line.getArrivalsByNaptan(
+            [line_name], STRATFORD_NAPTANS[line_name], dest_naptan
+        )[:3]
+        print(arrivals)
 
 
 def get_tfl_data():
