@@ -35,9 +35,7 @@ def _find_station_naptan_on_line(line_name: str, station_name: str):
 # Get the Naptan IDs for Stratford Station
 for line_name in STATUS_NAMES:
     naptans = _find_station_naptan_on_line(line_name, "Stratford")
-    naptans = list(
-        filter(lambda naptan: _is_stratford_tube_station(naptan[0]), naptans)
-    )[0]
+    naptans = [naptan for naptan in naptans if _is_stratford_tube_station(naptan[0])][0]
     STRATFORD_NAPTANS[line_name] = naptans[1]
 
 DEST_NAPTANS["mildmay"].append(STRATFORD_NAPTANS["mildmay"])
