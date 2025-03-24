@@ -16,21 +16,20 @@ def _is_stratford_tube_station(name: str) -> bool:
     )
 
 
-with open("app.key", "r") as f:
-    app_key = f.readline()
-
-line = tflwrapper.line(app_key)
-
-
 def _find_station_naptan_on_line(line_name: str, station_name: str):
     """ """
     stop_points = line.getAllStopPoints(line_name)
     naptans = []
     for stop_point in stop_points:
         if station_name in stop_point["commonName"]:
-            naptans.append((station_name, stop_point["naptanId"]))
+            naptans.append((station_name, stop_point["naptanId"]))  # todo - named tuple
     return naptans
 
+
+with open("app.key", "r") as f:
+    app_key = f.readline()
+
+line = tflwrapper.line(app_key)
 
 # Get the Naptan IDs for Stratford Station
 for line_name in STATUS_NAMES:
