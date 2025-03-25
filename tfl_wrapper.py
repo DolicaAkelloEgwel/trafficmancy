@@ -1,8 +1,27 @@
+from collections import namedtuple
+
 import tflwrapper
+
+# Create a namedtuple for station-naptan pair
+StationNaptan = namedtuple("StationNaptan", ["name", "naptan"])
+
+# Station Names
+STRATFORD = "Stratford"
+CENTRAL_TERMINI = [
+    "Ealing Broadway",
+    "West Ruislip",
+    "Grange Hill",
+    "Hainault",
+    "Epping",
+]
+
+# Line Names
+CENTRAL = "central"
+ELIZABETH = "elizabeth"
 
 STRATFORD_BIKE_POINT_ID = "BikePoints_790"
 STRATFORD_LINES = ["elizabeth-line", "dlr", "tube"]
-STATUS_NAMES = ["elizabeth", "dlr", "central", "mildmay", "jubilee"]
+STATUS_NAMES = [ELIZABETH, "dlr", CENTRAL, "mildmay", "jubilee"]
 STRATFORD_NAPTANS = {name: None for name in STATUS_NAMES}
 DEST_NAPTANS = {line_name: [] for line_name in STATUS_NAMES}
 
@@ -10,9 +29,7 @@ DEST_NAPTANS = {line_name: [] for line_name in STATUS_NAMES}
 def _is_stratford_tube_station(name: str) -> bool:
     """ """
     return (
-        "Stratford" in name
-        and "High Street" not in name
-        and "International" not in name
+        STRATFORD in name and "High Street" not in name and "International" not in name
     )
 
 
@@ -33,7 +50,7 @@ line = tflwrapper.line(app_key)
 
 # Get the Naptan IDs for Stratford Station
 for line_name in STATUS_NAMES:
-    naptans = _find_station_naptan_on_line(line_name, "Stratford")
+    naptans = _find_station_naptan_on_line(line_name, STRATFORD)
     naptans = [naptan for naptan in naptans if _is_stratford_tube_station(naptan[0])][0]
     STRATFORD_NAPTANS[line_name] = naptans[1]
 
@@ -41,13 +58,11 @@ DEST_NAPTANS["mildmay"].append(STRATFORD_NAPTANS["mildmay"])
 DEST_NAPTANS["jubilee"].append(STRATFORD_NAPTANS["jubilee"])
 
 # Get the Naptan IDs for Central line stops around Stratford
-DEST_NAPTANS["central"] = [
-    _find_station_naptan_on_line("central", "Ealing Broadway")[0][1],
-    _find_station_naptan_on_line("central", "West Ruislip")[0][1],
-    _find_station_naptan_on_line("central", "Grange Hill")[0][1],
-    _find_station_naptan_on_line("central", "Hainault")[0][1],
-    _find_station_naptan_on_line("central", "Epping")[0][1],
+DEST_NAPTANS[CENTRAL] = [
+    _find_station_naptan_on_line(CENTRAL, terminus)[0][1]
+    for terminus in CENTRAL_TERMINI
 ]
+
 DEST_NAPTANS["elizabeth"] = [
     _find_station_naptan_on_line("elizabeth", "Paddington")[0][1],
     _find_station_naptan_on_line("elizabeth", "Shenfield")[0][1],
@@ -64,9 +79,10 @@ DEST_NAPTANS["dlr"] = [
 
 for line_name in DEST_NAPTANS:
     for dest_naptan in DEST_NAPTANS[line_name]:
+        print(dest_naptan)
         arrivals = line.getArrivalsByNaptan(
             [line_name], STRATFORD_NAPTANS[line_name], dest_naptan
-        )[:3]
+        )[:1]
         print(arrivals)
 
 
