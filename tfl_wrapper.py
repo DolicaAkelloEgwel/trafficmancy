@@ -6,47 +6,35 @@ import tflwrapper
 with open("./app.key", "r") as f:
     APP_KEY = f.readline()
 
-# Station Name
-STRATFORD = "Stratford"
-
-# Line Names
-CENTRAL = "central"
-ELIZABETH = "elizabeth"
-MILDMAY = "mildmay"
-JUBILEE = "jubilee"
-DLR = "dlr"
-
-# ID of the bike points near Stratford and LCF
-STRATFORD_STATION_BIKE_POINT_ID = "BikePoints_790"
-AQUATIC_CENTRE_BIKE_POINT_ID = "BikePoints_785"
-PODIUM_BIKE_POINT_ID = "BikePoints_789"
-
 # ID for road around Stratford
 A12 = "a12"
 
 # API has some confusing thing where "elizabeth" is used in some places and "elizabeth-line" is used in others but "dlr" is consistent...
-STRATFORD_LINES = ("elizabeth-line", DLR, "tube")
-
-# List of the lines that pass through Stratford station
-LINES_THAT_STRATFORD_IS_ON = (ELIZABETH, DLR, CENTRAL, MILDMAY, JUBILEE)
-
-# Get the different Naptans for Stratford station
-STRATFORD_NAPTANS = {line_name: None for line_name in LINES_THAT_STRATFORD_IS_ON}
-
-# Dictionary for the termini Naptans for all the different lines that pass through Stratford
-TERMINI_NAPTANS = {line_name: [] for line_name in LINES_THAT_STRATFORD_IS_ON}
+STRATFORD_LINES = ("elizabeth-line", "dlr", "tube")
 
 # Read Stratford Naptans
+STRATFORD_NAPTANS = {}
 with open("./data/stratford-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for line_name, naptan in naptan_file:
         STRATFORD_NAPTANS[line_name] = naptan
 
 # Read Naptans of terminus stations for all lines passing through Stratford
+TERMINI_NAPTANS = {}
 with open("./data/terminus-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for row in naptan_file:
         TERMINI_NAPTANS[row[0]] = tuple(row[1:])
+
+# List of the lines that pass through Stratford station
+LINES_THAT_STRATFORD_IS_ON = tuple(TERMINI_NAPTANS.keys())
+
+# Read bike point IDs
+BIKE_POINTS = {}
+with open("./data/bike-points.csv", "r") as csvfile:
+    naptan_file = csv.reader(csvfile)
+    for name, id in naptan_file:
+        BIKE_POINTS[name] = id
 
 
 def _get_next_trains_to_stratford_for_line(line_name: str) -> list:
@@ -86,13 +74,14 @@ line = tflwrapper.line(APP_KEY)
 disruptions = tflwrapper.disruptions(APP_KEY)
 air_quality = tflwrapper.airQuality(APP_KEY)
 roads = tflwrapper.road(APP_KEY)
+occupancy = tflwrapper.occupancy(APP_KEY)
 
 
 def get_tfl_data() -> dict:
     """Get TFL info with the API.
 
     Returns:
-        dict: Current info on broken lifts, air quality, and number of trains arriving at Stratford.
+        dict: Current info on broken lifts across TFL, London air quality, number of trains arriving at Stratford, and status of the A12.
     """
     data = {}
 
