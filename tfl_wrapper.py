@@ -14,15 +14,30 @@ CENTRAL_TERMINI = [
     "Hainault",
     "Epping",
 ]
+ELIZABETH_TERMINI = [
+    "Paddington",
+    "Shenfield",
+    "Heathrow Terminal 5",
+    "Liverpool Street",
+    "Heathrow Terminal 4",
+]
+DLR_TERMINI = [
+    "Lewisham",
+    "Stratford International",
+    "Woolwich Arsenal",
+    "Canary Wharf",
+]
 
 # Line Names
 CENTRAL = "central"
 ELIZABETH = "elizabeth"
 MILDMAY = "mildmay"
+JUBILEE = "jubilee"
+DLR = "dlr"
 
 STRATFORD_BIKE_POINT_ID = "BikePoints_790"
-STRATFORD_LINES = ["elizabeth-line", "dlr", "tube"]
-STATUS_NAMES = [ELIZABETH, "dlr", CENTRAL, MILDMAY, "jubilee"]
+STRATFORD_LINES = ["elizabeth-line", DLR, "tube"]
+STATUS_NAMES = [ELIZABETH, DLR, CENTRAL, MILDMAY, JUBILEE]
 STRATFORD_NAPTANS = {name: None for name in STATUS_NAMES}
 DEST_NAPTANS = {line_name: [] for line_name in STATUS_NAMES}
 
@@ -56,26 +71,19 @@ for line_name in STATUS_NAMES:
     STRATFORD_NAPTANS[line_name] = naptans[1]
 
 DEST_NAPTANS[MILDMAY].append(STRATFORD_NAPTANS[MILDMAY])
-DEST_NAPTANS["jubilee"].append(STRATFORD_NAPTANS["jubilee"])
+DEST_NAPTANS[JUBILEE].append(STRATFORD_NAPTANS[JUBILEE])
 
-# Get the Naptan IDs for Central line stops around Stratford
 DEST_NAPTANS[CENTRAL] = [
     _find_station_naptan_on_line(CENTRAL, terminus)[0][1]
     for terminus in CENTRAL_TERMINI
 ]
-
-DEST_NAPTANS["elizabeth"] = [
-    _find_station_naptan_on_line("elizabeth", "Paddington")[0][1],
-    _find_station_naptan_on_line("elizabeth", "Shenfield")[0][1],
-    _find_station_naptan_on_line("elizabeth", "Heathrow Terminal 5")[0][1],
-    _find_station_naptan_on_line("elizabeth", "Liverpool Street")[0][1],
-    _find_station_naptan_on_line("elizabeth", "Heathrow Terminal 4")[0][1],
+DEST_NAPTANS[ELIZABETH] = [
+    _find_station_naptan_on_line(ELIZABETH, terminus)[0][1]
+    for terminus in ELIZABETH_TERMINI
 ]
-DEST_NAPTANS["dlr"] = [
-    _find_station_naptan_on_line("dlr", "Lewisham")[0][1],
-    _find_station_naptan_on_line("dlr", "Stratford International")[0][1],
-    _find_station_naptan_on_line("dlr", "Woolwich Arsenal")[0][1],
-    _find_station_naptan_on_line("dlr", "Canary Wharf")[0][1],
+
+DEST_NAPTANS[DLR] = [
+    _find_station_naptan_on_line(DLR, terminus)[0][1] for terminus in DLR_TERMINI
 ]
 
 for line_name in DEST_NAPTANS:
@@ -108,3 +116,6 @@ def get_tfl_data():
     data["statford-line-data"] = status_info[1:]
 
     return data
+
+
+print(get_tfl_data())
