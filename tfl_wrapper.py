@@ -26,9 +26,6 @@ with open("./data/terminus-naptans.csv", "r") as csvfile:
     for row in naptan_file:
         TERMINI_NAPTANS[row[0]] = tuple(row[1:])
 
-# List of the lines that visit Stratford station
-LINES_THAT_STRATFORD_IS_ON = tuple(TERMINI_NAPTANS.keys())
-
 # Read bike point IDs
 BIKE_POINTS = {}
 with open("./data/bike-points.csv", "r") as csvfile:
@@ -97,7 +94,7 @@ def get_tfl_data() -> dict:
     statuses = line.getStatusByID(STRATFORD_LINES, True)
     status_info = ""
     for status in statuses:
-        if status["id"] in LINES_THAT_STRATFORD_IS_ON:
+        if status["id"] in TERMINI_NAPTANS.keys():
             status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
 
     # Trim the first space
