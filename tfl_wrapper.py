@@ -16,8 +16,13 @@ MILDMAY = "mildmay"
 JUBILEE = "jubilee"
 DLR = "dlr"
 
-# ID of the bike point near Stratford Station
-STRATFORD_BIKE_POINT_ID = "BikePoints_790"
+# ID of the bike points near Stratford and LCF
+STRATFORD_STATION_BIKE_POINT_ID = "BikePoints_790"
+AQUATIC_CENTRE_BIKE_POINT_ID = "BikePoints_785"
+PODIUM_BIKE_POINT_ID = "BikePoints_789"
+
+# ID for road around Stratford
+A12 = "a12"
 
 # API has some confusing thing where "elizabeth" is used in some places and "elizabeth-line" is used in others but "dlr" is consistent...
 STRATFORD_LINES = ("elizabeth-line", DLR, "tube")
@@ -80,13 +85,14 @@ def _n_arrivals_within_5_minutes(arrivals: list[dict]) -> int:
 line = tflwrapper.line(APP_KEY)
 disruptions = tflwrapper.disruptions(APP_KEY)
 air_quality = tflwrapper.airQuality(APP_KEY)
+roads = tflwrapper.road(APP_KEY)
 
 
-def get_tfl_data():
-    """_summary_
+def get_tfl_data() -> dict:
+    """Get TFL info with the API.
 
     Returns:
-        _type_: _description_
+        dict: Current info on broken lifts, air quality, and number of trains arriving at Stratford.
     """
     data = {}
 
@@ -115,6 +121,12 @@ def get_tfl_data():
         n_arrivals[line_name] = _n_arrivals_within_5_minutes(arrivals)
 
     data["arriving-trains"] = n_arrivals
+
+    # See how the A12 is doing
+    a12_info = roads.getByID([A12])[0]
+    data["a12-status"] = (
+        f"The A12 is currently {a12_info['statusSeverity']} with {a12_info['statusSeverityDescription']}."
+    )
 
     return data
 
