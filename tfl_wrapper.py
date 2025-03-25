@@ -12,14 +12,14 @@ A12 = "a12"
 # API has some confusing thing where "elizabeth" is used in some places and "elizabeth-line" is used in others but "dlr" is consistent...
 STRATFORD_LINES = ("elizabeth-line", "dlr", "tube")
 
-# Read Stratford Naptans
+# Read Stratford naptans
 STRATFORD_NAPTANS = {}
 with open("./data/stratford-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for line_name, naptan in naptan_file:
         STRATFORD_NAPTANS[line_name] = naptan
 
-# Read Naptans of terminus stations for all lines passing through Stratford
+# Read naptans of terminus stations for all lines passing through Stratford
 TERMINI_NAPTANS = {}
 with open("./data/terminus-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
@@ -81,7 +81,7 @@ def get_tfl_data() -> dict:
     """Get TFL info with the API.
 
     Returns:
-        dict: Current info on broken lifts across TFL, London air quality, number of trains arriving at Stratford, and status of the A12.
+        dict: Current info on broken lifts across TFL, London air quality, number of trains arriving at Stratford, status of the A12, and bike point info.
     """
     data = {}
 
@@ -118,13 +118,12 @@ def get_tfl_data() -> dict:
     )
 
     # Get bike point occupancy
-    bike_points = {
+    data["bike-points"] = {
         bike_point[
             "name"
-        ]: f"{bike_point['emptyDocks']} out of {bike_point['totalDocks']}"
+        ]: f"{bike_point['totalDocks'] - bike_point['emptyDocks']} out of {bike_point['totalDocks']}"
         for bike_point in occupancy.getBikePointByIDs(BIKE_POINTS.values())
     }
-    data["bike-points"] = bike_points
 
     return data
 
