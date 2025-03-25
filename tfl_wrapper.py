@@ -20,16 +20,16 @@ DLR = "dlr"
 STRATFORD_BIKE_POINT_ID = "BikePoints_790"
 
 # API has some confusing thing where "elizabeth" is used in some places and "elizabeth-line" is used in others but "dlr" is consistent...
-STRATFORD_LINES = ["elizabeth-line", DLR, "tube"]
+STRATFORD_LINES = ("elizabeth-line", DLR, "tube")
 
 # List of the lines that pass through Stratford station
-LINES_THAT_GO_THROUGH_STRATFORD = [ELIZABETH, DLR, CENTRAL, MILDMAY, JUBILEE]
+LINES_THAT_STRATFORD_IS_ON = (ELIZABETH, DLR, CENTRAL, MILDMAY, JUBILEE)
 
 # Get the different Naptans for Stratford station
-STRATFORD_NAPTANS = {line_name: None for line_name in LINES_THAT_GO_THROUGH_STRATFORD}
+STRATFORD_NAPTANS = {line_name: None for line_name in LINES_THAT_STRATFORD_IS_ON}
 
 # Dictionary for the termini Naptans for all the different lines that pass through Stratford
-TERMINI_NAPTANS = {line_name: [] for line_name in LINES_THAT_GO_THROUGH_STRATFORD}
+TERMINI_NAPTANS = {line_name: [] for line_name in LINES_THAT_STRATFORD_IS_ON}
 
 # Read Stratford Naptans
 with open("./data/stratford-naptans.csv", "r") as csvfile:
@@ -41,7 +41,7 @@ with open("./data/stratford-naptans.csv", "r") as csvfile:
 with open("./data/terminus-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for row in naptan_file:
-        TERMINI_NAPTANS[row[0]] = row[1:]
+        TERMINI_NAPTANS[row[0]] = tuple(row[1:])
 
 
 def _get_next_trains_to_stratford_for_line(line_name: str) -> list:
@@ -59,7 +59,7 @@ def _get_next_trains_to_stratford_for_line(line_name: str) -> list:
             [line_name], STRATFORD_NAPTANS[line_name], terminus_naptan
         )
 
-    # Sort by timeToStation value for arrival
+    # Sort by timeToStation value for arrival (not actually needed, but keeping it anyway)
     arrivals = sorted(arrivals, key=lambda arrival: arrival["timeToStation"])
     return arrivals
 
@@ -83,6 +83,11 @@ air_quality = tflwrapper.airQuality(APP_KEY)
 
 
 def get_tfl_data():
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
     data = {}
 
     # Get number of broken lifts across TFL network
@@ -97,7 +102,7 @@ def get_tfl_data():
     statuses = line.getStatusByID(STRATFORD_LINES, True)
     status_info = ""
     for status in statuses:
-        if status["id"] in LINES_THAT_GO_THROUGH_STRATFORD:
+        if status["id"] in LINES_THAT_STRATFORD_IS_ON:
             status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
 
     # Trim the first space
