@@ -37,9 +37,9 @@ DLR = "dlr"
 
 STRATFORD_BIKE_POINT_ID = "BikePoints_790"
 STRATFORD_LINES = ["elizabeth-line", DLR, "tube"]
-STATUS_NAMES = [ELIZABETH, DLR, CENTRAL, MILDMAY, JUBILEE]
-STRATFORD_NAPTANS = {name: None for name in STATUS_NAMES}
-DEST_NAPTANS = {line_name: [] for line_name in STATUS_NAMES}
+LINES_THAT_GO_THROUGH_STRATFORD = [ELIZABETH, DLR, CENTRAL, MILDMAY, JUBILEE]
+STRATFORD_NAPTANS = {line_name: None for line_name in LINES_THAT_GO_THROUGH_STRATFORD}
+DEST_NAPTANS = {line_name: [] for line_name in LINES_THAT_GO_THROUGH_STRATFORD}
 
 
 def _is_stratford_tube_station(name: str) -> bool:
@@ -64,28 +64,32 @@ with open("app.key", "r") as f:
 
 line = tflwrapper.line(app_key)
 
-# Get the Naptan IDs for Stratford Station
-for line_name in STATUS_NAMES:
+# Get the Naptan IDs for Stratford Station on the different lines
+for line_name in LINES_THAT_GO_THROUGH_STRATFORD:
     naptans = _find_station_naptan_on_line(line_name, STRATFORD)
     naptans = [naptan for naptan in naptans if _is_stratford_tube_station(naptan[0])][0]
     STRATFORD_NAPTANS[line_name] = naptans[1]
 
+# Mildmay and Jubilee terminate at Stratford, so just ask for trains that have Stratford as its destination
 DEST_NAPTANS[MILDMAY].append(STRATFORD_NAPTANS[MILDMAY])
 DEST_NAPTANS[JUBILEE].append(STRATFORD_NAPTANS[JUBILEE])
 
+# Get Naptans for Central line termini
 DEST_NAPTANS[CENTRAL] = [
     _find_station_naptan_on_line(CENTRAL, terminus)[0][1]
     for terminus in CENTRAL_TERMINI
 ]
+# Naptans for Elizabeth line termini
 DEST_NAPTANS[ELIZABETH] = [
     _find_station_naptan_on_line(ELIZABETH, terminus)[0][1]
     for terminus in ELIZABETH_TERMINI
 ]
-
+# Naptans for DLR termini
 DEST_NAPTANS[DLR] = [
     _find_station_naptan_on_line(DLR, terminus)[0][1] for terminus in DLR_TERMINI
 ]
 
+# Find info on trains heading to/from Stratford
 for line_name in DEST_NAPTANS:
     for dest_naptan in DEST_NAPTANS[line_name]:
         print(dest_naptan)
@@ -98,19 +102,22 @@ for line_name in DEST_NAPTANS:
 def get_tfl_data():
     data = {}
 
+    # Get number of broken lifts across TFL network
     disruptions = tflwrapper.disruptions(app_key)
     data["num-broken-lifts"] = len(disruptions.getAllLifts())
 
+    # Get today's air quality data
     air_quality = tflwrapper.airQuality(app_key)
     data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0][
         "forecastSummary"
     ]
 
+    # Find status of the different lines that pass through Stratford
     line = tflwrapper.line(app_key)
     statuses = line.getStatusByID(STRATFORD_LINES, True)
     status_info = ""
     for status in statuses:
-        if status["id"] in STATUS_NAMES:
+        if status["id"] in LINES_THAT_GO_THROUGH_STRATFORD:
             status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
 
     data["statford-line-data"] = status_info[1:]
