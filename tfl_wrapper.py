@@ -31,48 +31,85 @@ STRATFORD_NAPTANS = {line_name: None for line_name in LINES_THAT_GO_THROUGH_STRA
 # Dictionary for the termini Naptans for all the different lines that pass through Stratford
 TERMINI_NAPTANS = {line_name: [] for line_name in LINES_THAT_GO_THROUGH_STRATFORD}
 
+# Read Stratford Naptans
 with open("./data/stratford-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for line_name, naptan in naptan_file:
         STRATFORD_NAPTANS[line_name] = naptan
 
+# Read Naptans of terminus stations for all lines passing through Stratford
 with open("./data/terminus-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for row in naptan_file:
         TERMINI_NAPTANS[row[0]] = row[1:]
 
-# Find info on trains heading to/from Stratford
-line = tflwrapper.line(APP_KEY)
 
-for line_name in TERMINI_NAPTANS:
+def _get_next_trains_to_stratford_for_line(line_name: str) -> list:
+    """Generates a list of incoming trains to Stratford for a given line.
+
+    Args:
+        line_name (str): The line name.
+
+    Returns:
+        list: Sorted list of Stratford arrival info for a given line.
+    """
+    arrivals = []
     for terminus_naptan in TERMINI_NAPTANS[line_name]:
-        arrivals = line.getArrivalsByNaptan(
+        arrivals += line.getArrivalsByNaptan(
             [line_name], STRATFORD_NAPTANS[line_name], terminus_naptan
         )
+
+    # Sort by timeToStation value for arrival
+    arrivals = sorted(arrivals, key=lambda arrival: arrival["timeToStation"])
+    return arrivals
+
+
+def _n_arrivals_within_5_minutes(arrivals: list[dict]) -> int:
+    """Determines the number of trains that will appear within 5 minutes.
+
+    Args:
+        arrivals (list[dict]): A list of incoming train info.
+
+    Returns:
+        int: The number of trains expected to arrive within 5 minutes.
+    """
+    return len([arrival for arrival in arrivals if arrival["timeToStation"] < 300])
+
+
+# Create the objects for doing API calls
+line = tflwrapper.line(APP_KEY)
+disruptions = tflwrapper.disruptions(APP_KEY)
+air_quality = tflwrapper.airQuality(APP_KEY)
 
 
 def get_tfl_data():
     data = {}
 
     # Get number of broken lifts across TFL network
-    disruptions = tflwrapper.disruptions(APP_KEY)
     data["num-broken-lifts"] = len(disruptions.getAllLifts())
 
-    # Get today's air quality data
-    air_quality = tflwrapper.airQuality(APP_KEY)
+    # Get the current air quality data
     data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0][
         "forecastSummary"
     ]
 
     # Find status of the different lines that pass through Stratford
-    line = tflwrapper.line(APP_KEY)
     statuses = line.getStatusByID(STRATFORD_LINES, True)
     status_info = ""
     for status in statuses:
         if status["id"] in LINES_THAT_GO_THROUGH_STRATFORD:
             status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
 
+    # Trim the first space
     data["statford-line-data"] = status_info[1:]
+
+    # Get the number of trains arriving at Stratford within 5 minutes for each line
+    n_arrivals = {}
+    for line_name in TERMINI_NAPTANS:
+        arrivals = _get_next_trains_to_stratford_for_line(line_name)
+        n_arrivals[line_name] = _n_arrivals_within_5_minutes(arrivals)
+
+    data["arriving-trains"] = n_arrivals
 
     return data
 
