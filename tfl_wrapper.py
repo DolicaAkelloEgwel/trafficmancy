@@ -18,10 +18,11 @@ CENTRAL_TERMINI = [
 # Line Names
 CENTRAL = "central"
 ELIZABETH = "elizabeth"
+MILDMAY = "mildmay"
 
 STRATFORD_BIKE_POINT_ID = "BikePoints_790"
 STRATFORD_LINES = ["elizabeth-line", "dlr", "tube"]
-STATUS_NAMES = [ELIZABETH, "dlr", CENTRAL, "mildmay", "jubilee"]
+STATUS_NAMES = [ELIZABETH, "dlr", CENTRAL, MILDMAY, "jubilee"]
 STRATFORD_NAPTANS = {name: None for name in STATUS_NAMES}
 DEST_NAPTANS = {line_name: [] for line_name in STATUS_NAMES}
 
@@ -54,7 +55,7 @@ for line_name in STATUS_NAMES:
     naptans = [naptan for naptan in naptans if _is_stratford_tube_station(naptan[0])][0]
     STRATFORD_NAPTANS[line_name] = naptans[1]
 
-DEST_NAPTANS["mildmay"].append(STRATFORD_NAPTANS["mildmay"])
+DEST_NAPTANS[MILDMAY].append(STRATFORD_NAPTANS[MILDMAY])
 DEST_NAPTANS["jubilee"].append(STRATFORD_NAPTANS["jubilee"])
 
 # Get the Naptan IDs for Central line stops around Stratford
