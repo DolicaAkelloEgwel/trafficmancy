@@ -45,9 +45,7 @@ def _get_next_trains_to_stratford_for_line(line_name: str) -> list:
     """
     arrivals = []
     for terminus_naptan in TERMINI_NAPTANS[line_name]:
-        arrivals += line.getArrivalsByNaptan(
-            [line_name], STRATFORD_NAPTANS[line_name], terminus_naptan
-        )
+        arrivals += line.getArrivalsByNaptan([line_name], STRATFORD_NAPTANS[line_name], terminus_naptan)
 
     # Sort by timeToStation value for arrival (not actually needed, but keeping it anyway)
     arrivals = sorted(arrivals, key=lambda arrival: arrival["timeToStation"])
@@ -78,7 +76,7 @@ def get_tfl_data() -> dict:
     """Get TFL info with the API.
 
     Returns:
-        dict: Current info on broken lifts across TFL, London air quality, number of trains arriving at Stratford, status of the A12, and bike point info.
+        dict: Current info on broken lifts across TFL, London air quality, number of trains arriving at Stratford within the next 5 minutes, status of the A12, and bike point info.
     """
     data = {}
 
@@ -86,27 +84,26 @@ def get_tfl_data() -> dict:
     data["num-broken-lifts"] = len(disruptions.getAllLifts())
 
     # Get the current air quality data
-    data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0][
-        "forecastSummary"
-    ]
+    data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0]["forecastSummary"]
 
     # Find status of the different lines that pass through Stratford
     statuses = line.getStatusByID(STRATFORD_LINES, True)
     status_info = ""
     for status in statuses:
         if status["id"] in TERMINI_NAPTANS.keys():
-            status_info += f" {status['name']} has {len(status['disruptions'])} disruptions and has {status['lineStatuses'][0]['statusSeverityDescription']}."
+            status_info += (
+                f" {status['name']} has {len(status['disruptions'])} disruptions and has"
+                f" {status['lineStatuses'][0]['statusSeverityDescription']}."
+            )
 
     # Trim the first space
-    data["statford-line-data"] = status_info[1:]
+    data["stratford-line-data"] = status_info[1:]
 
-    # Get the number of trains arriving at Stratford within 5 minutes for each line
-    n_arrivals = {}
+    # Get the number of trains arriving at Stratford within 5 minutes
+    data["arriving-trains"] = 0
     for line_name in TERMINI_NAPTANS:
         arrivals = _get_next_trains_to_stratford_for_line(line_name)
-        n_arrivals[line_name] = _n_arrivals_within_5_minutes(arrivals)
-
-    data["arriving-trains"] = n_arrivals
+        data["arriving-trains"] += _n_arrivals_within_5_minutes(arrivals)
 
     # See how the A12 is doing
     a12_info = roads.getByID([A12])[0]
@@ -118,11 +115,8 @@ def get_tfl_data() -> dict:
     data["bike-points"] = {
         bike_point[
             "name"
-        ]: f"{bike_point['totalDocks'] - bike_point['emptyDocks']} out of {bike_point['totalDocks']}"
+        ]: f"{bike_point['totalDocks'] - bike_point['emptyDocks']} available bikes out of {bike_point['totalDocks']}"
         for bike_point in occupancy.getBikePointByIDs(BIKE_POINTS.values())
     }
 
     return data
-
-
-print(get_tfl_data())
