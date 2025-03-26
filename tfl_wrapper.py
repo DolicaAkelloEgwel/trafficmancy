@@ -10,7 +10,7 @@ with open("./app.key", "r") as f:
 A12 = "a12"
 
 # API has some confusing thing where "elizabeth" is used in some places and "elizabeth-line" is used in others but "dlr" is consistent...
-STRATFORD_LINES = ("elizabeth-line", "dlr", "tube")
+STRATFORD_LINES = ("elizabeth-line", "dlr", "tube", "overground")
 
 # Read Stratford naptans
 STRATFORD_NAPTANS = {}
