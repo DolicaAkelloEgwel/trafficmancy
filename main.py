@@ -1,7 +1,7 @@
 import ollama
 import pyxel
 
-LOREM_IPSUM = False
+LOREM_IPSUM = True
 DEPTHAI = False
 
 TRAFFICMANCY_INITIAL_PROMPT = ""
@@ -40,7 +40,9 @@ if LOREM_IPSUM:
         " condimentum ante ac, auctor nisl. Vestibulum rutrum pellentesque eros sed egestas. Nunc vulputate velit vitae"
         " purus vestibulum, non bibendum lectus aliquam.\n\n"
     )
-    dummy_reponse = [{"message": {"content": word + " "}} for word in dummy_reponse.split(" ")]
+    dummy_reponse = [
+        {"message": {"content": word + " "}} for word in dummy_reponse.split(" ")
+    ]
 
     def ask_question(query: str):
         return iter(dummy_reponse)
@@ -103,23 +105,17 @@ BOX_WIDTH = APP_WIDTH - PADDING * 2
 
 CHARACTER_LIMIT = 117
 
-INSTRUCTIONS = "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
+INSTRUCTIONS = (
+    "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
+)
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
-INFO_OUTPUT = (
-    f"INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult {WHAT_IS_BEING_USED} to answer your"
-    " query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of"
-    " this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this"
-    " role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running"
-    " entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move"
-    " past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem"
-    " to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic"
-    " Rosicrucian guy I internet-befriended during Covid who told me he could receive information about the future"
-    " from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these"
-    " were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his"
-    " invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may"
-    " freeze at times, in which case you'll have to ask me to reset the device :P"
-)
+
+with open("./text/info", "r") as f:
+    INFO_OUTPUT = (
+        f"INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult {WHAT_IS_BEING_USED} to answer your query.\n\n"
+        + f.read()
+    )
 
 TITLE = "Trafficmancy"
 NEW_LINE = "\n"
@@ -149,17 +145,25 @@ def _split_up_long_text(output: str, character_limit: int) -> str:
         return (
             next_line[:break_idx]
             + NEW_LINE
-            + _split_up_long_text(next_line[break_idx + 1 :] + remaining_text, character_limit)
+            + _split_up_long_text(
+                next_line[break_idx + 1 :] + remaining_text, character_limit
+            )
         )
 
     if remaining_text[0] == " ":
-        return next_line + NEW_LINE + _split_up_long_text(remaining_text[1:], character_limit)
+        return (
+            next_line
+            + NEW_LINE
+            + _split_up_long_text(remaining_text[1:], character_limit)
+        )
 
     last_space_idx = next_line.rfind(" ")
     return (
         next_line[:last_space_idx]
         + NEW_LINE
-        + _split_up_long_text(next_line[last_space_idx + 1 :] + remaining_text, character_limit)
+        + _split_up_long_text(
+            next_line[last_space_idx + 1 :] + remaining_text, character_limit
+        )
     )
 
 
@@ -404,8 +408,12 @@ class App:
         pyxel.text(160, TITLE_Y, TITLE, 0, self.wizard)
 
         # Create input box
-        pyxel.rect(PADDING - 1, INPUT_BOX_Y - 1, BOX_WIDTH + 2, INPUT_BOX_HEIGHT + 2, 8)  # Red border for input box
-        pyxel.rect(PADDING, INPUT_BOX_Y, BOX_WIDTH, INPUT_BOX_HEIGHT, 0)  # Black rectangle for input
+        pyxel.rect(
+            PADDING - 1, INPUT_BOX_Y - 1, BOX_WIDTH + 2, INPUT_BOX_HEIGHT + 2, 8
+        )  # Red border for input box
+        pyxel.rect(
+            PADDING, INPUT_BOX_Y, BOX_WIDTH, INPUT_BOX_HEIGHT, 0
+        )  # Black rectangle for input
 
         # Create output box
         pyxel.rect(
@@ -415,23 +423,37 @@ class App:
             OUTPUT_BOX_HEIGHT + 2,
             8,
         )  # Red border for output box
-        pyxel.rect(PADDING, OUTPUT_BOX_Y, BOX_WIDTH, OUTPUT_BOX_HEIGHT, 0)  # Black rectangle for output box
+        pyxel.rect(
+            PADDING, OUTPUT_BOX_Y, BOX_WIDTH, OUTPUT_BOX_HEIGHT, 0
+        )  # Black rectangle for output box
 
         if self.info_mode:
-            pyxel.text(PADDING + 2, INPUT_BOX_Y + 2, INFO_INPUT, pyxel.frame_count % 15)  # This is just fun
+            pyxel.text(
+                PADDING + 2, INPUT_BOX_Y + 2, INFO_INPUT, pyxel.frame_count % 15
+            )  # This is just fun
 
-            pyxel.text(PADDING + 2, OUTPUT_BOX_Y + 2, INFO_OUTPUT, 7)  # Info about my project
+            pyxel.text(
+                PADDING + 2, OUTPUT_BOX_Y + 2, INFO_OUTPUT, 7
+            )  # Info about my project
         else:
-            pyxel.text(PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7)  # Display the input text
+            pyxel.text(
+                PADDING + 2, INPUT_BOX_Y + 2, self.input_text, 7
+            )  # Display the input text
 
-            pyxel.text(PADDING + 2, OUTPUT_BOX_Y + 2, self.response.to_str(), 7)  # Display user output text
+            pyxel.text(
+                PADDING + 2, OUTPUT_BOX_Y + 2, self.response.to_str(), 7
+            )  # Display user output text
 
             # Increase the counter for the output text display - unless we're already at the end
             if self.response.current_page.incomplete:
                 self.response.current_page.progress += 1
 
-        pyxel.rect(0, APP_HEIGHT - 11, APP_WIDTH, 12, 8)  # Red line for instructions footer
-        pyxel.rect(0, APP_HEIGHT - 10, APP_WIDTH, 10, 0)  # Black rectangle for instructions footer
+        pyxel.rect(
+            0, APP_HEIGHT - 11, APP_WIDTH, 12, 8
+        )  # Red line for instructions footer
+        pyxel.rect(
+            0, APP_HEIGHT - 10, APP_WIDTH, 10, 0
+        )  # Black rectangle for instructions footer
 
         # Commands text at the bottom
         pyxel.text(2, APP_HEIGHT - 8, INSTRUCTIONS, 8)
