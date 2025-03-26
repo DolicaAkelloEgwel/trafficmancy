@@ -9,39 +9,11 @@ TRAFFICMANCY_INITIAL_PROMPT = ""
 if LOREM_IPSUM:
 
     WHAT_IS_BEING_USED = "nothing"
-    # I may not have the camera and ollama set up in testing mode so just spit out some lorem ipsum to make sure everything looks OK
-    dummy_reponse = (
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sed consectetur mauris. Aenean nec ex turpis."
-        " Quisque accumsan ex a enim ultrices, a pretium sem hendrerit. Phasellus facilisis, nunc ut accumsan pulvinar,"
-        " velit mi pellentesque orci, et ullamcorper eros ante sit amet ipsum. Duis et libero pulvinar, eleifend orci"
-        " vel, suscipit nisl. Phasellus faucibus tempor quam vel viverra. Mauris consequat porttitor augue, a ornare"
-        " nunc commodo pellentesque. Interdum et malesuada fames ac ante ipsum primis in faucibus.\n\nNam ut imperdiet"
-        " dolor. Duis eget tristique sapien, condimentum molestie erat. Phasellus rhoncus accumsan metus. Etiam"
-        " tristique congue semper. Donec ultricies orci ante, laoreet dignissim mauris tincidunt et. In maximus finibus"
-        " dolor sit amet fermentum. Nunc feugiat, orci eget bibendum viverra, est magna rhoncus metus, euismod placerat"
-        " turpis nisi in sapien. Vivamus imperdiet, nisl quis venenatis aliquet, arcu sapien consectetur lorem, eu"
-        " tempor risus nisi sit amet ante. Praesent sagittis finibus ex, euismod volutpat urna tincidunt sed. Praesent"
-        " quis dignissim nisl. Maecenas dapibus ante eros. Donec iaculis velit augue, ut pulvinar lacus consequat"
-        " et.\n\nAenean a libero elit. Nam fringilla dolor id justo sodales convallis. In dapibus, dolor quis tincidunt"
-        " euismod, eros risus gravida urna, sit amet finibus tortor mauris et nunc. Aenean dolor augue, sodales sit"
-        " amet volutpat quis, fringilla quis est. Integer ante ipsum, semper id ex iaculis, auctor blandit elit."
-        " Integer urna tellus, bibendum vitae finibus eu, aliquam eu felis. Class aptent taciti sociosqu ad litora"
-        " torquent per conubia nostra, per inceptos himenaeos. Nullam laoreet finibus velit, sit amet lacinia massa"
-        " interdum sit amet. Nam gravida ornare risus, in molestie tellus mattis sit amet. Aenean a ante libero. Mauris"
-        " vulputate augue nec est egestas, vitae imperdiet urna tempor.\n\nAliquam neque leo, posuere ac tortor vitae,"
-        " dictum pellentesque urna. Suspendisse potenti. Fusce faucibus neque vitae quam porta elementum. Aliquam"
-        " placerat libero eu elit vehicula tristique sed at mi. Proin facilisis ante dolor, quis commodo leo facilisis"
-        " id. Fusce varius, orci sit amet accumsan vestibulum, augue ex pharetra est, at sagittis eros magna nec nunc."
-        " Aliquam laoreet risus nec massa vehicula, sit amet cursus turpis varius. Nullam imperdiet a odio vitae"
-        " vulputate. Vivamus aliquam sed metus sed mattis.\n\nPellentesque laoreet mi at dolor porta, ut aliquet ipsum"
-        " laoreet. Aenean eleifend nisl eros, eget viverra leo blandit sed. Nullam convallis, ligula efficitur viverra"
-        " maximus, tellus risus posuere dolor, id ultrices est orci dignissim libero. Sed sed lectus congue, interdum"
-        " risus non, euismod augue. Vestibulum in venenatis urna. Integer nec nunc arcu. Ut a libero ornare,"
-        " condimentum ante ac, auctor nisl. Vestibulum rutrum pellentesque eros sed egestas. Nunc vulputate velit vitae"
-        " purus vestibulum, non bibendum lectus aliquam.\n\n"
-    )
+    with open("./text/lorem-ipsum", "r") as f:
+        LOREM_IPSUM = f.read()
+
     dummy_reponse = [
-        {"message": {"content": word + " "}} for word in dummy_reponse.split(" ")
+        {"message": {"content": word + " "}} for word in LOREM_IPSUM.split(" ")
     ]
 
     def ask_question(query: str):
@@ -51,7 +23,6 @@ elif DEPTHAI:
     from stereo_camera import get_traffic_count
 
     WHAT_IS_BEING_USED = "the flow of the traffic outside"
-
     with open("./text/camera-prompt", "r") as f:
         TRAFFICMANCY_INITIAL_PROMPT += f.read()
 
