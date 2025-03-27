@@ -164,11 +164,19 @@ class Page:
 
 class ResponseText:
 
-    def __init__(self, text: str):
-        squished_text = _split_up_long_text(text, CHARACTER_LIMIT)
+    def __init__(self):
+        self._text = ""
 
         self._pages = []
         self._idx = 0
+        self._squish_text()
+
+    def __add__(self, word: str):
+        self._text += word
+        self._squish_text()
+
+    def _squish_text(self):
+        squished_text = _split_up_long_text(self._text, CHARACTER_LIMIT)
 
         if squished_text.count(NEW_LINE) < 30:
             self._pages.append(Page(squished_text))
@@ -182,9 +190,6 @@ class ResponseText:
                         # it's not going to be more than two pages of output so we're safe here...
                         self._pages.append(Page(squished_text[i + 1 :]))
                         break
-
-    def __add__(self, word: str):
-        self._text += word
 
     def to_str(self):
         return self._pages[self._idx].to_str()
@@ -211,8 +216,16 @@ class ResponseText:
     def incomplete(self) -> bool:
         return any([page.incomplete for page in self._pages])
 
+    @property
+    def is_empty(self) -> bool:
+        return not self._text
 
-BLANK_RESPONSE = ResponseText("")
+    def clear(self):
+        self._text = ""
+        self._pages.clear()
+
+
+BLANK_RESPONSE = ResponseText()
 
 
 def _get_character() -> str:
@@ -300,7 +313,7 @@ class App:
         self.input_text = ""
         self.stream = None
         self.ollama_output = ""
-        self.response = BLANK_RESPONSE
+        self.response = ResponseText()
 
         self._backup_input = ""
         self._backup_response = None
@@ -333,10 +346,10 @@ class App:
         # Clear the screen
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_C):
             self.input_text = ""
-            self.response = BLANK_RESPONSE
+            self.response.clear()
             return
 
-        if not self.response.current_page.incomplete:
+        if not self.response.is_empty and self.response.current_page.incomplete:
             # Only allow scrolling when the message is finished
             if pyxel.btnp(pyxel.KEY_UP):
                 self.response.idx -= 1
@@ -356,16 +369,14 @@ class App:
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
             self.stream = ask_question(self.input_text)
-        try:
-            if self.stream is not None:
+
+        if self.stream is not None:
+            try:
                 chunk = next(self.stream)
                 word = chunk["message"]["content"]
-                self.ollama_output += word
-                print(self.ollama_output)
-                self.response = ResponseText(self.ollama_output)
-        except StopIteration:
-            self.ollama_output = ""
-            self.stream = None
+                self.response += word
+            except StopIteration:
+                self.stream = None
 
     def draw(self):
         # Clear the screen
