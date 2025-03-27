@@ -6,7 +6,8 @@ DEPTHAI = False
 
 TRAFFICMANCY_INITIAL_PROMPT = ""
 
-TEXT_PATH = "/home/dolica/code/trafficmancy/text/"
+PROJECT_PATH = "/home/dolica/code/trafficmancy/"
+TEXT_PATH = PROJECT_PATH + "text/"
 
 if LOREM_IPSUM:
 
@@ -294,7 +295,7 @@ INFO_OUTPUT = _split_up_long_text(INFO_OUTPUT, CHARACTER_LIMIT)
 class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title=TITLE, quit_key=pyxel.KEY_NONE)
-        pyxel.load("background.pyxres")
+        pyxel.load(PROJECT_PATH + "background.pyxres")
 
         self.input_text = ""
         self.stream = None
@@ -305,7 +306,7 @@ class App:
         self._backup_response = None
 
         self.info_mode = False
-        self.wizard = pyxel.Font("wizard.bdf")
+        self.wizard = pyxel.Font(PROJECT_PATH + "wizard.bdf")
 
         pyxel.run(self.update, self.draw)
 
