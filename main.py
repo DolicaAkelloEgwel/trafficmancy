@@ -1,48 +1,74 @@
+import ollama
 import pyxel
 
-TESTING = True
+LOREM_IPSUM = False
+DEPTHAI = False
 
-if TESTING:
+TRAFFICMANCY_INITIAL_PROMPT = ""
 
-    # I may not have the camera and ollama set up in testing mode so just spit out some lorem ipsum to make sure everything looks OK
-    def ask_question(arg1, arg2):
-        return (
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sed consectetur mauris. Aenean nec ex turpis. "
-            "Quisque accumsan ex a enim ultrices, a pretium sem hendrerit. Phasellus facilisis, nunc ut accumsan pulvinar, "
-            "velit mi pellentesque orci, et ullamcorper eros ante sit amet ipsum. Duis et libero pulvinar, eleifend orci vel, "
-            "suscipit nisl. Phasellus faucibus tempor quam vel viverra. Mauris consequat porttitor augue, a ornare nunc commodo "
-            "pellentesque. Interdum et malesuada fames ac ante ipsum primis in faucibus.\n\n"
-            "Nam ut imperdiet dolor. Duis eget tristique sapien, condimentum molestie erat. Phasellus rhoncus accumsan metus. "
-            "Etiam tristique congue semper. Donec ultricies orci ante, laoreet dignissim mauris tincidunt et. In maximus finibus "
-            "dolor sit amet fermentum. Nunc feugiat, orci eget bibendum viverra, est magna rhoncus metus, euismod placerat turpis "
-            "nisi in sapien. Vivamus imperdiet, nisl quis venenatis aliquet, arcu sapien consectetur lorem, eu tempor risus nisi "
-            "sit amet ante. Praesent sagittis finibus ex, euismod volutpat urna tincidunt sed. Praesent quis dignissim nisl. "
-            "Maecenas dapibus ante eros. Donec iaculis velit augue, ut pulvinar lacus consequat et.\n\n"
-            "Aenean a libero elit. Nam fringilla dolor id justo sodales convallis. In dapibus, dolor quis tincidunt euismod, eros "
-            "risus gravida urna, sit amet finibus tortor mauris et nunc. Aenean dolor augue, sodales sit amet volutpat quis, "
-            "fringilla quis est. Integer ante ipsum, semper id ex iaculis, auctor blandit elit. Integer urna tellus, bibendum "
-            "vitae finibus eu, aliquam eu felis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
-            "himenaeos. Nullam laoreet finibus velit, sit amet lacinia massa interdum sit amet. Nam gravida ornare risus, in "
-            "molestie tellus mattis sit amet. Aenean a ante libero. Mauris vulputate augue nec est egestas, vitae imperdiet urna "
-            "tempor.\n\n"
-            "Aliquam neque leo, posuere ac tortor vitae, dictum pellentesque urna. Suspendisse potenti. Fusce faucibus neque vitae "
-            "quam porta elementum. Aliquam placerat libero eu elit vehicula tristique sed at mi. Proin facilisis ante dolor, quis "
-            "commodo leo facilisis id. Fusce varius, orci sit amet accumsan vestibulum, augue ex pharetra est, at sagittis eros "
-            "magna nec nunc. Aliquam laoreet risus nec massa vehicula, sit amet cursus turpis varius. Nullam imperdiet a odio vitae "
-            "vulputate. Vivamus aliquam sed metus sed mattis.\n\n"
-            "Pellentesque laoreet mi at dolor porta, ut aliquet ipsum laoreet. Aenean eleifend nisl eros, eget viverra leo blandit "
-            "sed. Nullam convallis, ligula efficitur viverra maximus, tellus risus posuere dolor, id ultrices est orci dignissim "
-            "libero. Sed sed lectus congue, interdum risus non, euismod augue. Vestibulum in venenatis urna. Integer nec nunc arcu. "
-            "Ut a libero ornare, condimentum ante ac, auctor nisl. Vestibulum rutrum pellentesque eros sed egestas. Nunc vulputate "
-            "velit vitae purus vestibulum, non bibendum lectus aliquam.\n\n"
+TEXT_PATH = "/home/dolica/code/trafficmancy/text/"
+
+if LOREM_IPSUM:
+
+    WHAT_IS_BEING_USED = "nothing"
+    with open(TEXT_PATH + "lorem-ipsum", "r") as f:
+        LOREM_IPSUM = f.read()
+
+    dummy_reponse = [
+        {"message": {"content": word + " "}} for word in LOREM_IPSUM.split(" ")
+    ]
+
+    def ask_question(query: str):
+        return iter(dummy_reponse)
+
+elif DEPTHAI:
+    from stereo_camera import get_traffic_count
+
+    WHAT_IS_BEING_USED = "the flow of the traffic outside"
+    with open(TEXT_PATH + "camera-prompt", "r") as f:
+        TRAFFICMANCY_INITIAL_PROMPT += f.read()
+
+    def ask_question(query: str):
+        counts = get_traffic_count()
+        query = (
+            f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians,'
+            f' {counts["bus"]} buses, {counts["motorbike"]} motorbikes, and {counts["bicycle"]} cyclists were observed.'
+            " Based on this snapshot, analyse the observed elements and provide a symbolic interpretation that answers"
+            f" the following query: {query}"
         )
-
-    def get_traffic_count():
-        return None
+        stream = ollama.chat(
+            model=MODEL,
+            messages=[{"role": "user", "content": query}],
+            stream=True,
+        )
+        return stream
 
 else:
-    from ask_question import ask_question
-    from traffic_counter import get_traffic_count
+    from tfl_wrapper import get_tfl_data
+
+    WHAT_IS_BEING_USED = "live TFL data"
+    with open(TEXT_PATH + "tfl-prompt", "r") as f:
+        TRAFFICMANCY_INITIAL_PROMPT += f.read()
+
+    def ask_question(query: str):
+        tfl_data = get_tfl_data()
+        query = (
+            f"{TRAFFICMANCY_INITIAL_PROMPT}. There are currently {tfl_data['num-broken-lifts']} broken lifts across the"
+            f" entire TFL network. This is the current air quality report for London: {tfl_data['air-quality']}. These"
+            " are the statuses for the different lines connected to Stratford Station:"
+            f" {tfl_data['stratford-line-data']}. The total number of trains across all lines expected to arrive at"
+            f" Stratford Station within the next five minutes is {tfl_data['arriving-trains']}. This is the current"
+            f" status of the A12 road: {tfl_data['a12-status']}. This is the current data on number of available bikes"
+            f" for the nearby bike points: {tfl_data['bike-points']}. Based on this snapshot, analyse the observed"
+            f" elements and provide a symbolic interpretation that answers the following query: {query}"
+        )
+        stream = ollama.chat(
+            model=MODEL,
+            messages=[{"role": "user", "content": query}],
+            stream=True,
+        )
+        return stream
+
 
 APP_WIDTH = 256 * 2
 APP_HEIGHT = 144 * 2
@@ -57,7 +83,12 @@ INSTRUCTIONS = (
 )
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
-INFO_OUTPUT = "INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult the flow of the traffic outside to answer your query.\n\nTrafficmancy was a little thing I put together so that I could say I contributed something to all of this. I'm not an artist (yet...?) and I never even heard people talk about `practices` before starting this role.\n\nTech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left, and the camera is being used to count how many people/cars/etc move past in a ten second period. The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?\n\nThe inspiration from this partly came from a schizophrenic Rosicrucian guy I internet-befriended during Covid who told me he could receive information about the future from absolutely anything. If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine. Perhaps you could call that panmancy? Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side. \n\nAlso, this machine may freeze at times, in which case you'll have to ask me to reset the device :P"
+
+with open(TEXT_PATH + "info", "r") as f:
+    INFO_OUTPUT = (
+        f"INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult {WHAT_IS_BEING_USED} to answer your query.\n\n"
+        + f.read()
+    )
 
 TITLE = "Trafficmancy"
 NEW_LINE = "\n"
@@ -69,6 +100,8 @@ OUTPUT_BOX_Y = INPUT_BOX_Y + 20
 OUTPUT_BOX_HEIGHT = 184
 
 TITLE_Y = 16
+
+MODEL = "dolphin-phi"
 
 
 def _split_up_long_text(output: str, character_limit: int) -> str:
@@ -148,6 +181,9 @@ class ResponseText:
                         # it's not going to be more than two pages of output so we're safe here...
                         self._pages.append(Page(squished_text[i + 1 :]))
                         break
+
+    def __add__(self, word: str):
+        self._text += word
 
     def to_str(self):
         return self._pages[self._idx].to_str()
@@ -261,6 +297,8 @@ class App:
         pyxel.load("background.pyxres")
 
         self.input_text = ""
+        self.stream = None
+        self.ollama_output = ""
         self.response = BLANK_RESPONSE
 
         self._backup_input = ""
@@ -316,10 +354,17 @@ class App:
 
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
-            traffic_count = get_traffic_count()
-            output_text = ask_question(self.input_text, traffic_count)
-            self.response = ResponseText(output_text)
-            print(output_text)
+            self.stream = ask_question(self.input_text)
+        try:
+            if self.stream is not None:
+                chunk = next(self.stream)
+                word = chunk["message"]["content"]
+                self.ollama_output += word
+                print(self.ollama_output)
+                self.response = ResponseText(self.ollama_output)
+        except StopIteration:
+            self.ollama_output = ""
+            self.stream = None
 
     def draw(self):
         # Clear the screen
@@ -348,7 +393,11 @@ class App:
 
         # Create output box
         pyxel.rect(
-            PADDING - 1, OUTPUT_BOX_Y - 1, BOX_WIDTH + 2, OUTPUT_BOX_HEIGHT + 2, 8
+            PADDING - 1,
+            OUTPUT_BOX_Y - 1,
+            BOX_WIDTH + 2,
+            OUTPUT_BOX_HEIGHT + 2,
+            8,
         )  # Red border for output box
         pyxel.rect(
             PADDING, OUTPUT_BOX_Y, BOX_WIDTH, OUTPUT_BOX_HEIGHT, 0

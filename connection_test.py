@@ -1,4 +1,5 @@
 from traffic_counter import get_traffic_count
+
 from ask_question import ask_question
 
 question = "What should I do with my life?"
