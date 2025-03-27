@@ -2,8 +2,11 @@ import csv
 
 import tflwrapper
 
+PROJECT_PATH = "/home/dolica/code/trafficmancy/"
+DATA_PATH = PROJECT_PATH + "data/"
+
 # Get the app key for API requests
-with open("./app.key", "r") as f:
+with open(PROJECT_PATH + "app.key", "r") as f:
     APP_KEY = f.readline()
 
 # ID for road around Stratford
@@ -14,21 +17,21 @@ STRATFORD_LINES = ("elizabeth-line", "dlr", "tube", "overground")
 
 # Read Stratford naptans
 STRATFORD_NAPTANS = {}
-with open("./data/stratford-naptans.csv", "r") as csvfile:
+with open(DATA_PATH + "stratford-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for line_name, naptan in naptan_file:
         STRATFORD_NAPTANS[line_name] = naptan
 
 # Read naptans of terminus stations for all lines passing through Stratford
 TERMINI_NAPTANS = {}
-with open("./data/terminus-naptans.csv", "r") as csvfile:
+with open(DATA_PATH + "terminus-naptans.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for row in naptan_file:
         TERMINI_NAPTANS[row[0]] = tuple(row[1:])
 
 # Read bike point IDs
 BIKE_POINTS = {}
-with open("./data/bike-points.csv", "r") as csvfile:
+with open(DATA_PATH + "bike-points.csv", "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for name, id in naptan_file:
         BIKE_POINTS[name] = id
@@ -45,7 +48,9 @@ def _get_next_trains_to_stratford_for_line(line_name: str) -> list:
     """
     arrivals = []
     for terminus_naptan in TERMINI_NAPTANS[line_name]:
-        arrivals += line.getArrivalsByNaptan([line_name], STRATFORD_NAPTANS[line_name], terminus_naptan)
+        arrivals += line.getArrivalsByNaptan(
+            [line_name], STRATFORD_NAPTANS[line_name], terminus_naptan
+        )
 
     # Sort by timeToStation value for arrival (not actually needed, but keeping it anyway)
     arrivals = sorted(arrivals, key=lambda arrival: arrival["timeToStation"])
@@ -84,7 +89,9 @@ def get_tfl_data() -> dict:
     data["num-broken-lifts"] = len(disruptions.getAllLifts())
 
     # Get the current air quality data
-    data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0]["forecastSummary"]
+    data["air-quality"] = air_quality.getAirQuality()["currentForecast"][0][
+        "forecastSummary"
+    ]
 
     # Find status of the different lines that pass through Stratford
     statuses = line.getStatusByID(STRATFORD_LINES, True)

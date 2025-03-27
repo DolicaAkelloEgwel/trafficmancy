@@ -1,15 +1,17 @@
 import ollama
 import pyxel
 
-LOREM_IPSUM = True
+LOREM_IPSUM = False
 DEPTHAI = False
 
 TRAFFICMANCY_INITIAL_PROMPT = ""
 
+TEXT_PATH = "/home/dolica/code/trafficmancy/text/"
+
 if LOREM_IPSUM:
 
     WHAT_IS_BEING_USED = "nothing"
-    with open("./text/lorem-ipsum", "r") as f:
+    with open(TEXT_PATH + "lorem-ipsum", "r") as f:
         LOREM_IPSUM = f.read()
 
     dummy_reponse = [
@@ -23,7 +25,7 @@ elif DEPTHAI:
     from stereo_camera import get_traffic_count
 
     WHAT_IS_BEING_USED = "the flow of the traffic outside"
-    with open("./text/camera-prompt", "r") as f:
+    with open(TEXT_PATH + "camera-prompt", "r") as f:
         TRAFFICMANCY_INITIAL_PROMPT += f.read()
 
     def ask_question(query: str):
@@ -45,7 +47,7 @@ else:
     from tfl_wrapper import get_tfl_data
 
     WHAT_IS_BEING_USED = "live TFL data"
-    with open("./text/tfl-prompt", "r") as f:
+    with open(TEXT_PATH + "tfl-prompt", "r") as f:
         TRAFFICMANCY_INITIAL_PROMPT += f.read()
 
     def ask_question(query: str):
@@ -82,7 +84,7 @@ INSTRUCTIONS = (
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
 
-with open("./text/info", "r") as f:
+with open(TEXT_PATH + "info", "r") as f:
     INFO_OUTPUT = (
         f"INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult {WHAT_IS_BEING_USED} to answer your query.\n\n"
         + f.read()
@@ -179,6 +181,9 @@ class ResponseText:
                         # it's not going to be more than two pages of output so we're safe here...
                         self._pages.append(Page(squished_text[i + 1 :]))
                         break
+
+    def __add__(self, word: str):
+        self._text += word
 
     def to_str(self):
         return self._pages[self._idx].to_str()
