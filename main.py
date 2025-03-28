@@ -96,7 +96,7 @@ PADDING = 20
 BOX_WIDTH = APP_WIDTH - PADDING * 2
 
 CHARACTER_LIMIT = 117
-MAX_LINES = 24
+MAX_LINES = 30
 
 INSTRUCTIONS = (
     "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
@@ -199,6 +199,10 @@ class Page:
     def is_empty(self) -> bool:
         return not self._text
 
+    def clear(self):
+        self._text = ""
+        self._progress = 0
+
 
 class ResponseText:
 
@@ -230,14 +234,6 @@ class ResponseText:
         if i == 1 and self._pages[1].is_empty():
             return
         self._idx = i
-
-    @property
-    def length(self) -> int:
-        return len(self._pages)
-
-    @property
-    def incomplete(self) -> bool:
-        return any([page.incomplete for page in self._pages])
 
     @property
     def is_empty(self) -> bool:
