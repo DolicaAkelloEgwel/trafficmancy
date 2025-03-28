@@ -96,6 +96,7 @@ PADDING = 20
 BOX_WIDTH = APP_WIDTH - PADDING * 2
 
 CHARACTER_LIMIT = 117
+MAX_LINES = 24
 
 INSTRUCTIONS = (
     "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
@@ -160,15 +161,30 @@ def _split_up_long_text(output: str, character_limit: int) -> str:
 
 
 class Page:
-    def __init__(self, text: str):
+    def __init__(self, text: str = ""):
         self._text = text
         self._progress = 0
+
+    def can_add_word(self, word: str) -> bool:
+        if len(self.lines) < MAX_LINES:
+            return True
+        return len(self.lines[-1] + word) < CHARACTER_LIMIT
 
     def to_str(self) -> str:
         return self._text[: self._progress]
 
+    def add_word(self, word: str):
+        if len(self.lines[-1] + word) > CHARACTER_LIMIT:
+            self._text += "\n" + word[1:]
+        else:
+            self._text += word
+
     @property
-    def progress(self):
+    def lines(self) -> list[str]:
+        return self._text.split("\n")
+
+    @property
+    def progress(self) -> int:
         return self._progress
 
     @property
@@ -179,35 +195,22 @@ class Page:
     def progress(self, p: int):
         self._progress = p
 
+    @property
+    def is_empty(self) -> bool:
+        return not self._text
+
 
 class ResponseText:
 
     def __init__(self):
-        self._text = ""
-
-        self._pages = []
+        self._pages = [Page(), Page()]
         self._idx = 0
-        self._squish_text()
 
-    def __add__(self, word: str):
-        self._text += word
-        self._squish_text()
-
-    def _squish_text(self):
-        squished_text = _split_up_long_text(self._text, CHARACTER_LIMIT)
-
-        if squished_text.count(NEW_LINE) < 30:
-            self._pages.append(Page(squished_text))
+    def add_word(self, word: str):
+        if self._pages[0].can_add_word(word):
+            self._pages[0].add_word(word)
         else:
-            count = 0
-            for i in range(len(squished_text)):
-                if squished_text[i] == NEW_LINE:
-                    count += 1
-                    if count == 30:
-                        self._pages.append(Page(squished_text[:i]))
-                        # it's not going to be more than two pages of output so we're safe here...
-                        self._pages.append(Page(squished_text[i + 1 :]))
-                        break
+            self._pages[1].add_word(word)
 
     def to_str(self):
         return self._pages[self._idx].to_str()
@@ -224,6 +227,8 @@ class ResponseText:
     def idx(self, i: int):
         if i >= len(self._pages) or i < 0:
             return
+        if i == 1 and self._pages[1].is_empty():
+            return
         self._idx = i
 
     @property
@@ -236,14 +241,11 @@ class ResponseText:
 
     @property
     def is_empty(self) -> bool:
-        return not self._text
+        return all([page.is_empty for page in self._pages])
 
     def clear(self):
-        self._text = ""
-        self._pages.clear()
-
-
-BLANK_RESPONSE = ResponseText()
+        self._pages[0].clear()
+        self._pages[1].clear()
 
 
 def _get_character() -> str:
@@ -333,13 +335,9 @@ class App:
         pyxel.init(APP_WIDTH, APP_HEIGHT, title=TITLE, quit_key=pyxel.KEY_NONE)
         pyxel.load(os.path.join(PROJECT_PATH, "background.pyxres"))
 
-        self.input_text = ""
         self.stream = None
-        self.ollama_output = ""
-        self.response = ResponseText()
-
-        self._backup_input = ""
-        self._backup_response = None
+        self.ollama_text = ResponseText()
+        self.input_text = ""
 
         self.info_mode = False
         self.wizard = pyxel.Font(os.path.join(PROJECT_PATH, "wizard.bdf"))
@@ -351,15 +349,6 @@ class App:
         # Toggle info mode
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_I):
             self.info_mode = not self.info_mode
-
-            if self.info_mode:
-                self._backup_input = self.input_text
-                self._backup_response = self.response
-
-            else:
-                self.input_text = self._backup_input
-                self.response = self._backup_response
-
             return
 
         # Do nothing if we're in info mode
@@ -369,16 +358,16 @@ class App:
         # Clear the screen
         if pyxel.btnp(pyxel.KEY_LALT, True, 1) and pyxel.btnp(pyxel.KEY_C):
             self.input_text = ""
-            self.response.clear()
+            self.ollama_text.clear()
             return
 
-        if not self.response.is_empty and self.response.current_page.incomplete:
+        if not self.ollama_text.is_empty and self.ollama_text.current_page.incomplete:
             # Only allow scrolling when the message is finished
             if pyxel.btnp(pyxel.KEY_UP):
-                self.response.idx -= 1
+                self.ollama_text.idx -= 1
 
             if pyxel.btnp(pyxel.KEY_DOWN):
-                self.response.idx += 1
+                self.ollama_text.idx += 1
 
         # Add a character to the input box - don't bother if we've passed the limit (tough if the question is too long)
         if len(self.input_text) < CHARACTER_LIMIT:
@@ -391,13 +380,15 @@ class App:
 
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
+            print(self.ollama_text)
             self.stream = ask_question(self.input_text)
+            print(self.ollama_text)
 
         if self.stream is not None:
             try:
                 chunk = next(self.stream)
                 word = chunk["message"]["content"]
-                self.response += word
+                self.ollama_text.add_word(word)
             except StopIteration:
                 self.stream = None
 
@@ -452,12 +443,12 @@ class App:
             )  # Display the input text
 
             pyxel.text(
-                PADDING + 2, OUTPUT_BOX_Y + 2, self.response.to_str(), 7
+                PADDING + 2, OUTPUT_BOX_Y + 2, self.ollama_text.to_str(), 7
             )  # Display user output text
 
             # Increase the counter for the output text display - unless we're already at the end
-            if self.response.current_page.incomplete:
-                self.response.current_page.progress += 1
+            if self.ollama_text.current_page.incomplete:
+                self.ollama_text.current_page.progress += 1
 
         pyxel.rect(
             0, APP_HEIGHT - 11, APP_WIDTH, 12, 8
