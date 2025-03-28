@@ -1,12 +1,13 @@
 import csv
+import os
 
 import tflwrapper
 
-PROJECT_PATH = "/home/dolica/code/trafficmancy/"
-DATA_PATH = PROJECT_PATH + "data/"
+PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
+DATA_PATH = os.path.join(PROJECT_PATH, "data")
 
 # Get the app key for API requests
-with open(PROJECT_PATH + "app.key", "r") as f:
+with open(os.path.join(PROJECT_PATH, "app.key"), "r") as f:
     APP_KEY = f.readline()
 
 # ID for road around Stratford
@@ -17,21 +18,21 @@ STRATFORD_LINES = ("elizabeth-line", "dlr", "tube", "overground")
 
 # Read Stratford naptans
 STRATFORD_NAPTANS = {}
-with open(DATA_PATH + "stratford-naptans.csv", "r") as csvfile:
+with open(os.path.join(DATA_PATH, "stratford-naptans.csv"), "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for line_name, naptan in naptan_file:
         STRATFORD_NAPTANS[line_name] = naptan
 
 # Read naptans of terminus stations for all lines passing through Stratford
 TERMINI_NAPTANS = {}
-with open(DATA_PATH + "terminus-naptans.csv", "r") as csvfile:
+with open(os.path.join(DATA_PATH, "terminus-naptans.csv"), "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for row in naptan_file:
         TERMINI_NAPTANS[row[0]] = tuple(row[1:])
 
 # Read bike point IDs
 BIKE_POINTS = {}
-with open(DATA_PATH + "bike-points.csv", "r") as csvfile:
+with open(os.path.join(DATA_PATH, "bike-points.csv"), "r") as csvfile:
     naptan_file = csv.reader(csvfile)
     for name, id in naptan_file:
         BIKE_POINTS[name] = id

@@ -1,3 +1,5 @@
+import os
+
 import ollama
 import pyxel
 
@@ -6,13 +8,13 @@ DEPTHAI = False
 
 TRAFFICMANCY_INITIAL_PROMPT = ""
 
-PROJECT_PATH = "/home/dolica/code/trafficmancy/"
-TEXT_PATH = PROJECT_PATH + "text/"
+PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
+TEXT_PATH = os.path.join(PROJECT_PATH, "text")
 
 if LOREM_IPSUM:
 
     WHAT_IS_BEING_USED = "nothing"
-    with open(TEXT_PATH + "lorem-ipsum", "r") as f:
+    with open(os.path.join(TEXT_PATH, "lorem-ipsum"), "r") as f:
         LOREM_IPSUM = f.read()
 
     dummy_reponse = [
@@ -26,10 +28,18 @@ elif DEPTHAI:
     from stereo_camera import get_traffic_count
 
     WHAT_IS_BEING_USED = "the flow of the traffic outside"
-    with open(TEXT_PATH + "camera-prompt", "r") as f:
+    with open(os.path.join(TEXT_PATH, "camera-prompt"), "r") as f:
         TRAFFICMANCY_INITIAL_PROMPT += f.read()
 
     def ask_question(query: str):
+        """Asks Ollama a question based on the traffic observations from the camera.
+
+        Args:
+            query (str): The user's query.
+
+        Returns:
+            _type_: _description_
+        """
         counts = get_traffic_count()
         query = (
             f'{TRAFFICMANCY_INITIAL_PROMPT}. {counts["car"]} cars, {counts["person"]} pedestrians,'
@@ -48,10 +58,18 @@ else:
     from tfl_wrapper import get_tfl_data
 
     WHAT_IS_BEING_USED = "live TFL data"
-    with open(TEXT_PATH + "tfl-prompt", "r") as f:
+    with open(os.path.join(TEXT_PATH, "tfl-prompt"), "r") as f:
         TRAFFICMANCY_INITIAL_PROMPT += f.read()
 
     def ask_question(query: str):
+        """Asks Ollama a question based on TFL data.
+
+        Args:
+            query (str): The user's query.
+
+        Returns:
+            _type_: _description_
+        """
         tfl_data = get_tfl_data()
         query = (
             f"{TRAFFICMANCY_INITIAL_PROMPT}. There are currently {tfl_data['num-broken-lifts']} broken lifts across the"
@@ -85,7 +103,7 @@ INSTRUCTIONS = (
 
 INFO_INPUT = "Look for the synchroniCITY...".center(CHARACTER_LIMIT)
 
-with open(TEXT_PATH + "info", "r") as f:
+with open(os.path.join(TEXT_PATH, "info"), "r") as f:
     INFO_OUTPUT = (
         f"INSTRUCTIONS: Type a question and hit Enter. Trafficmancy will then consult {WHAT_IS_BEING_USED} to answer your query.\n\n"
         + f.read()
@@ -229,6 +247,11 @@ BLANK_RESPONSE = ResponseText()
 
 
 def _get_character() -> str:
+    """Gets the character to display on the input field.
+
+    Returns:
+        str: A single-letter string for the character that needs to be added to the query field. Or nothing if the character isn't recognised.
+    """
 
     # Handle the letters of the alphabet
     for i in range(26):
@@ -308,7 +331,7 @@ INFO_OUTPUT = _split_up_long_text(INFO_OUTPUT, CHARACTER_LIMIT)
 class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title=TITLE, quit_key=pyxel.KEY_NONE)
-        pyxel.load(PROJECT_PATH + "background.pyxres")
+        pyxel.load(os.path.join(PROJECT_PATH, "background.pyxres"))
 
         self.input_text = ""
         self.stream = None
@@ -319,7 +342,7 @@ class App:
         self._backup_response = None
 
         self.info_mode = False
-        self.wizard = pyxel.Font(PROJECT_PATH + "wizard.bdf")
+        self.wizard = pyxel.Font(os.path.join(PROJECT_PATH, "wizard.bdf"))
 
         pyxel.run(self.update, self.draw)
 
