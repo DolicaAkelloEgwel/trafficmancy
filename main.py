@@ -218,8 +218,11 @@ class ResponseText:
         print(word)
         for i in range(len(self._pages)):
             if self._pages[i].can_add_word(word):
-                self._pages[i].add_word(word)
-                return
+                if (
+                    i < len(self._pages) - 1 and self._pages[i + 1].is_empty
+                ) or i == len(self._pages):
+                    self._pages[i].add_word(word)
+                    return
 
     def to_str(self):
         return self._pages[self._idx].to_str()
