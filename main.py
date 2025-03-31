@@ -96,7 +96,7 @@ PADDING = 20
 BOX_WIDTH = APP_WIDTH - PADDING * 2
 
 CHARACTER_LIMIT = 117
-MAX_LINES = 30
+MAX_LINES = 29
 
 INSTRUCTIONS = (
     "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
@@ -231,7 +231,7 @@ class ResponseText:
     def idx(self, i: int):
         if i >= len(self._pages) or i < 0:
             return
-        if i == 1 and self._pages[1].is_empty():
+        if i == 1 and self._pages[1].is_empty:
             return
         self._idx = i
 
@@ -242,6 +242,7 @@ class ResponseText:
     def clear(self):
         self._pages[0].clear()
         self._pages[1].clear()
+        self.idx = 0
 
 
 def _get_character() -> str:
@@ -357,13 +358,15 @@ class App:
             self.ollama_text.clear()
             return
 
-        if not self.ollama_text.is_empty and self.ollama_text.current_page.incomplete:
+        if not self.ollama_text.current_page.incomplete:
             # Only allow scrolling when the message is finished
             if pyxel.btnp(pyxel.KEY_UP):
                 self.ollama_text.idx -= 1
 
             if pyxel.btnp(pyxel.KEY_DOWN):
                 self.ollama_text.idx += 1
+
+            print("Changed index to ", self.ollama_text.idx)
 
         # Add a character to the input box - don't bother if we've passed the limit (tough if the question is too long)
         if len(self.input_text) < CHARACTER_LIMIT:
