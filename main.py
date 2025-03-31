@@ -11,18 +11,20 @@ TRAFFICMANCY_INITIAL_PROMPT = ""
 PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
 TEXT_PATH = os.path.join(PROJECT_PATH, "text")
 
+
+def _create_stream(text: str):
+    stream = [{"message": {"content": word + " "}} for word in text.split(" ")]
+    return iter(stream)
+
+
 if LOREM_IPSUM:
 
     WHAT_IS_BEING_USED = "nothing"
     with open(os.path.join(TEXT_PATH, "lorem-ipsum"), "r") as f:
         LOREM_IPSUM = f.read()
 
-    dummy_reponse = [
-        {"message": {"content": word + " "}} for word in LOREM_IPSUM.split(" ")
-    ]
-
     def ask_question(query: str):
-        return iter(dummy_reponse)
+        return _create_stream(LOREM_IPSUM)
 
 elif DEPTHAI:
     from stereo_camera import get_traffic_count
@@ -70,7 +72,13 @@ else:
         Returns:
             _type_: _description_
         """
-        tfl_data = get_tfl_data()
+        try:
+            tfl_data = get_tfl_data()
+        except urllib.error.HTTPError:
+            return _create_stream(
+                "Unfortunately the API isn't working right now. Please try again later."
+            )
+
         query = (
             f"{TRAFFICMANCY_INITIAL_PROMPT}. There are currently {tfl_data['num-broken-lifts']} broken lifts across the"
             f" entire TFL network. This is the current air quality report for London: {tfl_data['air-quality']}. These"
@@ -96,7 +104,7 @@ PADDING = 20
 BOX_WIDTH = APP_WIDTH - PADDING * 2
 
 CHARACTER_LIMIT = 117
-MAX_LINES = 29
+MAX_LINES = 28
 
 INSTRUCTIONS = (
     "Submit Question: Enter | Scroll: Up/Down | Toggle Info: Alt + i | Clear: Alt + c"
@@ -250,7 +258,7 @@ class ResponseText:
     def clear(self):
         for page in self._pages:
             page.clear()
-        self.idx = 0
+        self._idx = 0
 
 
 def _get_character() -> str:
@@ -386,6 +394,7 @@ class App:
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
             self.ollama_text.clear()
+            print(self.ollama_text.idx)
             self.stream = ask_question(self.input_text)
 
         if self.stream is not None:
