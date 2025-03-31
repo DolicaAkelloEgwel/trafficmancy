@@ -175,7 +175,11 @@ class Page:
 
     def add_word(self, word: str):
         if len(self.lines[-1] + word) > CHARACTER_LIMIT:
-            self._text += "\n" + word[1:]
+            if word[0] == " ":
+                word = word[1:]
+            self._text += "\n" + word
+        elif not self._text and word[0] == " ":
+            self._text += word[1:]
         else:
             self._text += word
 
@@ -207,14 +211,15 @@ class Page:
 class ResponseText:
 
     def __init__(self):
-        self._pages = [Page(), Page()]
+        self._pages = [Page(), Page(), Page()]
         self._idx = 0
 
     def add_word(self, word: str):
-        if self._pages[0].can_add_word(word):
-            self._pages[0].add_word(word)
-        else:
-            self._pages[1].add_word(word)
+        print(word)
+        for i in range(len(self._pages)):
+            if self._pages[i].can_add_word(word):
+                self._pages[i].add_word(word)
+                return
 
     def to_str(self):
         return self._pages[self._idx].to_str()
@@ -231,7 +236,7 @@ class ResponseText:
     def idx(self, i: int):
         if i >= len(self._pages) or i < 0:
             return
-        if i == 1 and self._pages[1].is_empty:
+        if self._pages[i].is_empty:
             return
         self._idx = i
 
@@ -240,8 +245,8 @@ class ResponseText:
         return all([page.is_empty for page in self._pages])
 
     def clear(self):
-        self._pages[0].clear()
-        self._pages[1].clear()
+        for page in self._pages:
+            page.clear()
         self.idx = 0
 
 
@@ -366,8 +371,6 @@ class App:
             if pyxel.btnp(pyxel.KEY_DOWN):
                 self.ollama_text.idx += 1
 
-            print("Changed index to ", self.ollama_text.idx)
-
         # Add a character to the input box - don't bother if we've passed the limit (tough if the question is too long)
         if len(self.input_text) < CHARACTER_LIMIT:
             self.input_text += _get_character()
@@ -379,9 +382,8 @@ class App:
 
         # Generate a reply when the user hits Enter
         if pyxel.btnp(pyxel.KEY_RETURN) and self.input_text:
-            print(self.ollama_text)
+            self.ollama_text.clear()
             self.stream = ask_question(self.input_text)
-            print(self.ollama_text)
 
         if self.stream is not None:
             try:
