@@ -1,15 +1,7 @@
-Trafficmancy was a little thing I put together so that I could say I contributed something to all of this.  
-I'm not an artist (yet...?) and I never even heard people talk about 'practice'` before starting this role.
+Trafficmancy was a project put together for the 2024 LCC Technicians Exhibition. 
 
-Tech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the little machine on the left,  
-and the camera is being used to count how many people/cars/etc move past in a ten-second period.  
-The interface was made with a Python library called pyxel that weirdly doesn't seem to accept the existence of the pound symbol?
+Tech-wise, the responses you're getting are coming from the Ollama dolphin-phi model that is running entirely on the Nvidia Jetson. The information about bikes, the tube, etc is being retrieved using the TFL API. The interface was made with a Python library called pyxel, which is meant to be the Python equivalent of "fantasy consoles" like the TIC-80.
 
-The inspiration for this partly came from a schizophrenic Rosicrucian guy I internet-befriended during Covid,  
-who told me he could receive information about the future from absolutely anything.  
-If birds started chirping or a helicopter flew overhead, he was able to see how these were messages from the divine.  
-Perhaps you could call that panmancy?  
+The idea came from a Rosicrucian dude I used to know who could hear voices, and who told me he could make predictions from the future using absolutely anything...
 
-Anyways, we stopped talking when his invisible helpers told him that my astral self had done bad things on the other side.
-
-Also, this machine may freeze at times, in which case you'll have to ask me to reset the device :P
+I find it neat that LLMs can easily find the "product" of different ideas.
